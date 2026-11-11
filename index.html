@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="sv" class="h-full bg-[#111211] text-[#141514] antialiased">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AVGÅNG // Uppsala C ➔ Stockholm C</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Space Grotesk (Rubriker/Skyltar) & JetBrains Mono (Tider/Spår/Tågnr) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Space Grotesk', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            paper: '#F4F1EA',
+            paperDark: '#E6E1D6',
+            asphalt: '#141514',
+            asphaltLight: '#222422',
+            signalYellow: '#FCD116',
+            signalRed: '#D92B2B',
+            signalGreen: '#16803C',
+            operatorSJ: '#141514',
+            operatorMalar: '#005A9C',
+            operatorSL: '#007AC8'
+          },
+          boxShadow: {
+            'brutal': '3px 3px 0px 0px #141514',
+            'brutal-sm': '2px 2px 0px 0px #141514',
+            'brutal-yellow': '3px 3px 0px 0px #FCD116',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: #E6E1D6; }
+    ::-webkit-scrollbar-thumb { background: #141514; }
+    
+    /* Biljett-klippning & Perrongtavla-detaljer */
+    .ticket-notch {
+      background-image: radial-gradient(circle at 0 50%, #F4F1EA 6px, transparent 7px),
+                        radial-gradient(circle at 100% 50%, #F4F1EA 6px, transparent 7px);
+    }
+    .flap-row {
+      background: linear-gradient(180deg, #1A1C1A 0%, #141514 49%, #090A09 50%, #141514 100%);
+    }
+    .dot-matrix {
+      background-image: radial-gradient(#2c2e2c 1px, transparent 1px);
+      background-size: 6px 6px;
+    }
+  </style>
+</head>
+<body class="h-full flex justify-center bg-[#0C0D0C] font-sans select-none">
+
+  <!-- MOBILRAM (Centrerad på desktop, fullskärm på mobil, ser ut som ett fysiskt instrument/tidtabell) -->
+  <div class="w-full max-w-[460px] h-full flex flex-col bg-paper border-x-2 border-asphalt relative overflow-hidden shadow-2xl">
+
+    <!-- TOPP-TAVLA (SVENSK STATIONSSKYLT) -->
+    <header class="bg-asphalt text-paper px-4 pt-3 pb-3 border-b-2 border-asphalt z-30 shrink-0">
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-2">
+        <div class="flex items-center gap-2">
+          <span class="bg-signalYellow text-asphalt font-mono font-extrabold text-xs px-1.5 py-0.5 tracking-tighter">SPÅR / U➔CST</span>
+          <span id="liveStatusBadge" class="font-mono text-[10px] uppercase px-1.5 py-0.5 border border-signalYellow text-signalYellow">
+            EJ ANSLUTEN
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="liveClock" class="font-mono text-xs font-bold text-signalYellow tracking-wider">07:15:00</span>
+          <button id="syncBtn" onclick="app.refreshData(true)" title="Synkronisera live-data från Trafikverket" class="bg-asphaltLight hover:bg-neutral-700 text-paper border border-neutral-600 px-2 py-0.5 font-mono text-[10px] active:translate-y-0.5 transition">
+            ↻ SYNK
+          </button>
+        </div>
+      </div>
+
+      <div class="flex items-baseline justify-between">
+        <div>
+          <div class="text-[10px] font-mono uppercase text-neutral-400">Vald morgonsträcka</div>
+          <h1 id="headerRouteTitle" class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            <span>UPPSALA C</span>
+            <span class="text-signalYellow font-mono text-base">➔</span>
+            <span>STOCKHOLM C</span>
+          </h1>
+        </div>
+        <button onclick="app.toggleDirection()" class="text-[10px] font-mono underline text-neutral-300 hover:text-signalYellow">
+          Vänd sträcka ⇄
+        </button>
+      </div>
+    </header>
+
+    <!-- SCROLLBART HUVUDINNEHÅLL -->
+    <main class="flex-1 overflow-y-auto px-3.5 pt-3.5 pb-24 space-y-4">
+
+      <!-- ========================================== -->
+      <!-- FLIK 1: MORGONVY / SNABBKOLL               -->
+      <!-- ========================================== -->
+      <section id="view-morning" class="space-y-4">
+
+        <!-- Filter-rad -->
+        <div class="flex flex-wrap items-center justify-between gap-1.5">
+          <div class="inline-flex border-2 border-asphalt bg-paperDark p-0.5">
+            <button onclick="app.setFilter('all')" id="filter-all" class="px-2.5 py-1 text-[11px] font-mono font-bold text-asphalt hover:bg-neutral-300">
+              Alla tåg idag
+            </button>
+            <button onclick="app.setFilter('window')" id="filter-window" class="px-2.5 py-1 text-[11px] font-mono font-bold bg-asphalt text-paper">
+              07:00–08:30
+            </button>
+            <button onclick="app.setFilter('delayed')" id="filter-delayed" class="px-2.5 py-1 text-[11px] font-mono font-bold text-asphalt hover:bg-neutral-300">
+              Försenade
+            </button>
+          </div>
+          <span id="lastSyncTimeLabel" class="font-mono text-[10px] text-neutral-600">Ej synkad än</span>
+        </div>
+
+        <!-- HERO-KORT: MITT VALDA PENDLARTÅG (SPLIT-FLAP STIL) -->
+        <div class="bg-asphalt text-paper border-2 border-asphalt shadow-brutal relative">
+          <!-- Övre gul tåglist -->
+          <div class="bg-signalYellow text-asphalt px-3 py-1.5 flex items-center justify-between border-b-2 border-asphalt">
+            <div class="flex items-center gap-2 font-mono text-xs font-extrabold uppercase">
+              <span>★ MITT PENDLARTÅG</span>
+              <span>•</span>
+              <span id="heroOperator">—</span>
+            </div>
+            <span id="heroCountdown" class="font-mono text-[11px] font-bold bg-asphalt text-signalYellow px-1.5 py-0.5">
+              LIVE STATUS
+            </span>
+          </div>
+
+          <!-- Huvudtavla -->
+          <div class="p-4 dot-matrix">
+            <div class="flex items-start justify-between mb-3">
+              <div>
+                <div class="text-[10px] font-mono text-neutral-400 uppercase">Tågnummer & Destination</div>
+                <div class="flex items-baseline gap-2">
+                  <span id="heroTrainNo" class="font-mono text-2xl font-extrabold text-white tracking-tight">INGET TÅG VALT</span>
+                  <span id="heroDest" class="font-mono text-xs text-neutral-300"></span>
+                </div>
+              </div>
+
+              <!-- Status-skylt -->
+              <div id="heroStatusBadge" class="px-2.5 py-1 font-mono text-xs font-extrabold uppercase bg-neutral-700 text-white border border-white/20">
+                VÄNTAR PÅ SYNK
+              </div>
+            </div>
+
+            <!-- Klockslag i Split-Flap rutor -->
+            <div class="grid grid-cols-12 gap-2 my-3">
+              <!-- Ordinarie & Beräknad Avgång -->
+              <div class="col-span-6 flap-row border border-neutral-700 p-2.5">
+                <div class="text-[10px] font-mono text-neutral-400 uppercase">Avgångstid</div>
+                <div class="flex items-baseline gap-2 mt-0.5">
+                  <span id="heroAdvTime" class="font-mono text-3xl font-extrabold text-white tracking-tighter">--:--</span>
+                  <span id="heroEstTime" class="font-mono text-lg font-extrabold text-signalYellow hidden">--:--</span>
+                </div>
+                <div id="heroDelayNote" class="text-[10px] font-mono text-neutral-400 mt-1">Anslut API-nyckel under fliken API & Tåg</div>
+              </div>
+
+              <!-- Spår -->
+              <div class="col-span-3 flap-row border border-neutral-700 p-2.5 flex flex-col justify-between items-center text-center">
+                <div class="text-[10px] font-mono text-neutral-400 uppercase">Spår</div>
+                <div id="heroTrack" class="font-mono text-3xl font-extrabold text-signalYellow leading-none my-auto">-</div>
+                <div class="text-[9px] font-mono text-neutral-400" id="heroFromLabel">Uppsala C</div>
+              </div>
+
+              <!-- Ankomst -->
+              <div class="col-span-3 flap-row border border-neutral-700 p-2.5 flex flex-col justify-between">
+                <div class="text-[10px] font-mono text-neutral-400 uppercase">Ber. Ank</div>
+                <div id="heroArrival" class="font-mono text-lg font-bold text-neutral-200 my-auto">--:--</div>
+                <div class="text-[9px] font-mono text-neutral-400">~38 min</div>
+              </div>
+            </div>
+
+            <!-- Orsak / Avvikelse-remsa -->
+            <div id="heroDeviationBanner" class="hidden mt-2 bg-signalRed/20 border-l-4 border-signalRed p-2 font-mono text-xs text-red-200">
+              <strong class="text-white uppercase">Trafikverkets rapport:</strong>
+              <span id="heroDeviationText"></span>
+            </div>
+
+            <!-- Knapprad under Hero -->
+            <div class="mt-3 pt-2.5 border-t border-neutral-800 flex items-center justify-between gap-2">
+              <button onclick="app.logTrainAsEvidence(app.getHeroTrain()?.id)" class="flex-1 py-1.5 px-2.5 bg-paper text-asphalt hover:bg-signalYellow font-mono font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                <span>+ SPARA BEVIS FÖR ERSÄTTNING</span>
+              </button>
+              <span class="text-[10px] font-mono text-neutral-400 px-1">Klicka på tåg nedan för att välja</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AVGÅNGSTAVLA FÖR DAGENS TÅG -->
+        <div class="border-2 border-asphalt bg-white shadow-brutal">
+          <div class="bg-asphalt text-paper px-3 py-2 flex items-center justify-between font-mono text-[11px] font-bold uppercase">
+            <span>Avgångar från Trafikverket (Klicka för att välja)</span>
+            <span id="trainCountLabel" class="text-signalYellow">0 TÅG</span>
+          </div>
+
+          <!-- Kolumnrubriker -->
+          <div class="grid grid-cols-12 px-3 py-1.5 bg-paperDark border-b-2 border-asphalt font-mono text-[10px] font-bold uppercase text-neutral-600">
+            <div class="col-span-3">Avg/Ank</div>
+            <div class="col-span-4">Tåg / Operatör</div>
+            <div class="col-span-2 text-center">Spår</div>
+            <div class="col-span-3 text-right">Status</div>
+          </div>
+
+          <!-- Rader -->
+          <div id="departuresTableBody" class="divide-y divide-neutral-300">
+            <!-- Renderas dynamiskt -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- FLIK 2: FÖRSENINGSTEST & BEVIS-FLIK        -->
+      <!-- ========================================== -->
+      <section id="view-evidence" class="hidden space-y-4">
+        <div class="border-2 border-asphalt bg-white p-3.5 shadow-brutal">
+          <div class="flex items-center justify-between border-b-2 border-asphalt pb-2 mb-2.5">
+            <div>
+              <span class="bg-asphalt text-signalYellow font-mono text-[10px] font-bold px-1.5 py-0.5 uppercase">RESEGARANTI-LOGG</span>
+              <h2 class="text-lg font-bold tracking-tight mt-0.5">Bevis & Ersättningskrav</h2>
+            </div>
+            <div class="text-right font-mono">
+              <div id="evidenceCountBadge" class="text-xl font-extrabold">0 st</div>
+              <div class="text-[10px] text-neutral-500">sparade tåg</div>
+            </div>
+          </div>
+
+          <p class="text-xs text-neutral-700 leading-relaxed mb-3">
+            När tåget blir minst <strong>20 minuter försenat</strong> på sträckan Uppsala–Stockholm har du rätt till resegaranti (50–100 % av biljettpriset eller ersättning för utlägg/taxi vid SL/Mälartåg/SJ). Här sparas tidsstämplad live-data från Trafikverket för dina tåg.
+          </p>
+
+          <div class="flex flex-wrap gap-2">
+            <button onclick="app.copyEvidenceReport()" class="w-full py-2 px-3 bg-asphalt text-signalYellow hover:bg-neutral-800 font-mono font-bold text-xs border-2 border-asphalt shadow-brutal-sm active:translate-y-0.5 transition">
+              KOPIERA FÄRDIGT ERSÄTTNINGSKRAV
+            </button>
+          </div>
+        </div>
+
+        <!-- Ersättningslänkar -->
+        <div class="grid grid-cols-2 gap-2 font-mono text-center">
+          <a href="https://www.malardalstrafik.se/kundservice/ersaettning-vid-foersening" target="_blank" class="border-2 border-asphalt bg-paperDark p-2 hover:bg-signalYellow hover:shadow-brutal-sm active:translate-y-0.5 transition flex flex-col justify-center items-center">
+            <div class="text-[9px] font-bold uppercase text-neutral-600">Ansök hos</div>
+            <div class="text-sm font-extrabold text-asphalt tracking-tight">Mälartåg</div>
+            <div class="text-[9px] text-neutral-500 mt-1">Öppna formulär</div>
+          </a>
+          <a href="https://www.sj.se/kundservice/forseningsersattning" target="_blank" class="border-2 border-asphalt bg-paperDark p-2 hover:bg-signalYellow hover:shadow-brutal-sm active:translate-y-0.5 transition flex flex-col justify-center items-center">
+            <div class="text-[9px] font-bold uppercase text-neutral-600">Ansök hos</div>
+            <div class="text-sm font-extrabold text-asphalt tracking-tight">SJ</div>
+            <div class="text-[9px] text-neutral-500 mt-1">Öppna formulär</div>
+          </a>
+          <a href="https://sl.se/kundservice/forseningsersattning/" target="_blank" class="border-2 border-asphalt bg-paperDark p-2 hover:bg-signalYellow hover:shadow-brutal-sm active:translate-y-0.5 transition flex flex-col justify-center items-center">
+            <div class="text-[9px] font-bold uppercase text-neutral-600">Ansök hos</div>
+            <div class="text-sm font-extrabold text-asphalt tracking-tight">SL</div>
+            <div class="text-[9px] text-neutral-500 mt-1">Öppna formulär</div>
+          </a>
+          <a href="https://www.ul.se/kundservice/forseningsersattning/" target="_blank" class="border-2 border-asphalt bg-paperDark p-2 hover:bg-signalYellow hover:shadow-brutal-sm active:translate-y-0.5 transition flex flex-col justify-center items-center">
+            <div class="text-[9px] font-bold uppercase text-neutral-600">Ansök hos</div>
+            <div class="text-sm font-extrabold text-asphalt tracking-tight">UL</div>
+            <div class="text-[9px] text-neutral-500 mt-1">Öppna formulär</div>
+          </a>
+        </div>
+
+        <!-- Sparade bevis-kort -->
+        <div id="evidenceCardsContainer" class="space-y-3">
+          <!-- Renderas via JS -->
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- FLIK 3: MORGONNOTIS (07:00-08:30)          -->
+      <!-- ========================================== -->
+      <section id="view-alerts" class="hidden space-y-4">
+        
+        <!-- Svar på frågan: "Går det att göra?" -->
+        <div class="border-2 border-asphalt bg-signalYellow p-3.5 shadow-brutal">
+          <h2 class="text-base font-bold leading-snug">
+            Kan jag få en notis varje morgon för alla tåg kl. 07:00–08:30?
+          </h2>
+          <div class="font-mono text-[10px] font-extrabold uppercase bg-asphalt text-signalYellow inline-block px-1.5 py-0.5 mb-1">
+            SVAR PÅ DIN FRÅGA: JA! SÅ HÄR GÖR DU
+          </div>          
+          <p class="text-xs mt-1.5 leading-relaxed text-asphalt/90">
+            Telefoner stänger ofta ner webbsidor i bakgrunden för att spara batteri. Det allra enklaste (och helt gratis) sättet att lösa detta utan att kunna koda, är att be telefonen skicka en påminnelse till dig varje morgon och automatiskt öppna upp den här webbappen. Följ den enkla guiden nedan!
+          </p>
+        </div>
+
+        <!-- Detaljerad Guide -->
+        <div class="border-2 border-asphalt bg-white p-3.5 shadow-brutal space-y-4">
+          <div class="font-mono text-sm font-extrabold uppercase flex items-center justify-between border-b-2 border-asphalt pb-2">
+            <span>Automatisk Morgonnotis (06:50)</span>
+          </div>
+
+          <div class="space-y-4 text-xs">
+            
+            <!-- iOS -->
+            <div class="p-3 bg-paper border-2 border-asphalt shadow-brutal-sm">
+              <strong class="font-mono text-sm flex items-center gap-1.5 mb-2">
+                FÖR iPHONE
+              </strong>
+              <p class="text-neutral-700 mb-2 leading-relaxed">
+                Din iPhone har en inbyggd app som heter <strong>Genvägar</strong> (Shortcuts). Den kan ställas in för att väcka skärmen och visa tågen varje morgon.
+              </p>
+              <ol class="list-decimal pl-4 space-y-1.5 text-neutral-800 font-medium">
+                <li>Leta upp och öppna appen <strong>Genvägar</strong> på din hemskärm.</li>
+                <li>Längst ner på skärmen trycker du på fliken <strong>Automatisering</strong>.</li>
+                <li>Tryck på plustecknet uppe i hörnet (eller "Skapa personlig automatisering").</li>
+                <li>Välj alternativet <strong>Tid på dagen</strong>.</li>
+                <li>Ställ in klockan på <span class="font-mono bg-paperDark px-1">06:50</span>. Välj att den ska köras "Vardagar". Bocka även i "Kör omedelbart" så att du inte behöver godkänna den varje morgon.</li>
+                <li>Tryck på Nästa och välj <strong>Ny tom automatisering</strong>.</li>
+                <li>Tryck på knappen <strong>Lägg till åtgärd</strong>. Sök efter "Visa notis" i sökfältet och välj den. Skriv in texten: "Dags att kolla tåget!".</li>
+                <li>Sök efter en till åtgärd som heter "Öppna URL" (eller Öppna webbsida).</li>
+                <li>Kopiera adressen till den här sidan i din webbläsare och klistra in den i URL-rutan.</li>
+                <li>Tryck på Klar! Nu kommer din telefon plinga kl 06:50 varje morgon och ett tryck på notisen öppnar tågtiderna.</li>
+              </ol>
+            </div>
+
+            <!-- Android / Universal -->
+            <div class="p-3 bg-paper border-2 border-asphalt shadow-brutal-sm">
+              <strong class="font-mono text-sm flex items-center gap-1.5 mb-2">
+                FÖR ANDROID
+              </strong>
+              <p class="text-neutral-700 mb-2 leading-relaxed">
+                På Android-telefoner är det enklast att ladda ner en gratis app som kan schemalägga händelser åt dig.
+              </p>
+              <ol class="list-decimal pl-4 space-y-1.5 text-neutral-800 font-medium">
+                <li>Gå in i Google Play Butik och ladda ner en gratis app som heter <strong>MacroDroid</strong>.</li>
+                <li>Öppna appen och tryck på <strong>Lägg till makro</strong>.</li>
+                <li>Tryck på plustecknet vid den röda rubriken <strong>Utlösare</strong>. Välj "Dag/Tid Trigger" och ställ in klockan på <span class="font-mono bg-paperDark px-1">06:50</span> (endast vardagar).</li>
+                <li>Tryck på plustecknet vid den blå rubriken <strong>Åtgärder</strong>. Välj "Visa notifikation" och skriv "Kolla tågen!".</li>
+                <li>Lägg till ytterligare en åtgärd under den blå rubriken: Sök efter "Öppna webbplats" (Open Website).</li>
+                <li>Kopiera adressen till den här sidan i din webbläsare och klistra in den.</li>
+                <li>Längst upp skriver du ett namn på makrot (t.ex. "Morgontåg") och sparar. Nu är det färdigt!</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- TOAST / MEDDELANDEREMSA -->
+    <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 max-w-[420px] w-[92%] pointer-events-none opacity-0 -translate-y-3 transition-all duration-200">
+      <div class="bg-asphalt text-signalYellow border-2 border-signalYellow px-3.5 py-2.5 shadow-brutal font-mono text-xs font-bold flex items-center gap-2">
+        <span id="toastIcon">!</span>
+        <span id="toastMessage" class="flex-1 text-paper">Uppdaterad</span>
+      </div>
+    </div>
+
+    <!-- FAST BOTTENMENY (3 FLIKAR I BRUTALISTISK BILJETTSTIL) -->
+    <nav class="absolute bottom-0 left-0 right-0 z-40 bg-asphalt border-t-2 border-asphalt grid grid-cols-3 font-mono text-[10px] font-bold uppercase">
+      <button onclick="app.switchTab('morning')" id="tabBtn-morning" class="py-3 flex flex-col items-center justify-center bg-signalYellow text-asphalt border-r border-neutral-800">
+        <span class="text-sm leading-none mb-1">▤</span>
+        <span>Morgonkoll</span>
+      </button>
+      <button onclick="app.switchTab('evidence')" id="tabBtn-evidence" class="py-3 flex flex-col items-center justify-center text-neutral-300 hover:text-white border-r border-neutral-800">
+        <span class="text-sm leading-none mb-1">§</span>
+        <span>Bevis/Krav</span>
+      </button>
+      <button onclick="app.switchTab('alerts')" id="tabBtn-alerts" class="py-3 flex flex-col items-center justify-center text-neutral-300 hover:text-white">
+        <span class="text-sm leading-none mb-1">!</span>
+        <span>Notiser</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- APPLIKATIONSLOGIK -->
+  <script>
+    const DEFAULT_TRAFIKVERKET_API_KEY = 'f825361ca8a44670a1df1779f3f97852';
+
+    const app = {
+      state: {
+        activeTab: 'morning',
+        filter: 'window', // 'all' (Alla tåg idag), 'window' (07:00-08:30), 'delayed'
+        isConnected: false,
+        lastSyncTime: null,
+        fromSig: localStorage.getItem('mp_from_sig') || 'U',
+        toSig: localStorage.getItem('mp_to_sig') || 'Cst',
+        favTrainNo: localStorage.getItem('mp_fav_train') || '811',
+        apiKey: localStorage.getItem('mp_apikey') || DEFAULT_TRAFIKVERKET_API_KEY,
+        useProxy: localStorage.getItem('mp_use_proxy') === 'true',
+        selectedTrainId: null,
+        departures: [],
+        evidenceLog: JSON.parse(localStorage.getItem('mp_evidence_log') || '[]')
+      },
+
+      init() {
+        this.updateClock();
+        setInterval(() => this.updateClock(), 1000);
+
+        if (!this.state.apiKey) {
+          this.state.apiKey = DEFAULT_TRAFIKVERKET_API_KEY;
+          localStorage.setItem('mp_apikey', DEFAULT_TRAFIKVERKET_API_KEY);
+        }
+
+        this.state.evidenceLog = this.state.evidenceLog.filter(e => e.id !== 'ev-init-1');
+        localStorage.setItem('mp_evidence_log', JSON.stringify(this.state.evidenceLog));
+
+        this.updateHeaderRoute();
+        this.renderEvidenceList();
+        this.refreshData(false);
+      },
+
+      updateClock() {
+        const now = new Date();
+        const el = document.getElementById('liveClock');
+        if (el) el.innerText = now.toTimeString().split(' ')[0];
+      },
+
+      updateHeaderRoute() {
+        const fromName = this.state.fromSig.toUpperCase() === 'U' ? 'UPPSALA C' : (this.state.fromSig.toUpperCase() === 'CST' ? 'STOCKHOLM C/CITY' : this.state.fromSig.toUpperCase());
+        const toName = this.state.toSig.toUpperCase() === 'CST' ? 'STOCKHOLM C/CITY' : (this.state.toSig.toUpperCase() === 'U' ? 'UPPSALA C' : this.state.toSig.toUpperCase());
+        document.getElementById('headerRouteTitle').innerHTML = `
+          <span>${fromName}</span>
+          <span class="text-signalYellow font-mono text-base">➔</span>
+          <span>${toName}</span>
+        `;
+        const heroFrom = document.getElementById('heroFromLabel');
+        if (heroFrom) heroFrom.innerText = fromName;
+      },
+
+      toggleDirection() {
+        const tmp = this.state.fromSig;
+        this.state.fromSig = this.state.toSig;
+        this.state.toSig = tmp;
+        this.updateHeaderRoute();
+        this.refreshData(true);
+      },
+
+      switchTab(tabId) {
+        this.state.activeTab = tabId;
+        ['morning', 'evidence', 'alerts'].forEach(t => {
+          document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tabId);
+          const btn = document.getElementById(`tabBtn-${t}`);
+          if (t === tabId) {
+            btn.className = "py-3 flex flex-col items-center justify-center bg-signalYellow text-asphalt border-r border-neutral-800 font-extrabold";
+          } else {
+            btn.className = "py-3 flex flex-col items-center justify-center text-neutral-300 hover:text-white border-r border-neutral-800";
+          }
+        });
+      },
+
+      setFilter(filterType) {
+        this.state.filter = filterType;
+        ['all', 'window', 'delayed'].forEach(f => {
+          const btn = document.getElementById(`filter-${f}`);
+          if (f === filterType) {
+            btn.className = "px-2.5 py-1 text-[11px] font-mono font-bold bg-asphalt text-paper";
+          } else {
+            btn.className = "px-2.5 py-1 text-[11px] font-mono font-bold text-asphalt hover:bg-neutral-300";
+          }
+        });
+        this.renderMorningView();
+      },
+
+      showToast(msg, icon = '!') {
+        const toast = document.getElementById('toast');
+        document.getElementById('toastMessage').innerText = msg;
+        document.getElementById('toastIcon').innerText = icon;
+        toast.classList.remove('opacity-0', '-translate-y-3');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        clearTimeout(this._toastTimer);
+        this._toastTimer = setTimeout(() => {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', '-translate-y-3');
+        }, 3500);
+      },
+
+      buildXmlQuery(apiKey, fromSig, toSig) {
+        const fromLocNode = fromSig === 'Cst' 
+          ? '<OR><EQ name="LocationSignature" value="Cst" /><EQ name="LocationSignature" value="Sci" /></OR>' 
+          : `<EQ name="LocationSignature" value="${fromSig}" />`;
+          
+        const toLocNode = toSig === 'Cst'
+          ? '<OR><EQ name="LocationSignature" value="Cst" /><EQ name="LocationSignature" value="Sci" /></OR>'
+          : `<EQ name="LocationSignature" value="${toSig}" />`;
+
+        const toDestNode = toSig === 'Cst'
+          ? `<OR><EQ name="ToLocation.LocationName" value="Cst" /><EQ name="ViaToLocation.LocationName" value="Cst" /><EQ name="ToLocation.LocationName" value="Sci" /><EQ name="ViaToLocation.LocationName" value="Sci" /></OR>`
+          : `<OR><EQ name="ToLocation.LocationName" value="${toSig}" /><EQ name="ViaToLocation.LocationName" value="${toSig}" /></OR>`;
+
+        const fromDestNode = fromSig === 'Cst'
+          ? `<OR><EQ name="FromLocation.LocationName" value="Cst" /><EQ name="ViaFromLocation.LocationName" value="Cst" /><EQ name="FromLocation.LocationName" value="Sci" /><EQ name="ViaFromLocation.LocationName" value="Sci" /></OR>`
+          : `<OR><EQ name="FromLocation.LocationName" value="${fromSig}" /><EQ name="ViaFromLocation.LocationName" value="${fromSig}" /></OR>`;
+
+        return `<REQUEST>
+  <LOGIN authenticationkey="${apiKey || 'DIN_API_NYCKEL'}" />
+  <!-- Query 1: Hämtar avgångstider vid startstationen -->
+  <QUERY objecttype="TrainAnnouncement" schemaversion="1.4" orderby="AdvertisedTimeAtLocation">
+    <FILTER>
+      <AND>
+        <EQ name="ActivityType" value="Avgang" />
+        ${fromLocNode}
+        <EQ name="Advertised" value="true" />
+        ${toDestNode}
+        <GT name="AdvertisedTimeAtLocation" value="$dateadd(-14:00:00)" />
+        <LT name="AdvertisedTimeAtLocation" value="$dateadd(14:00:00)" />
+      </AND>
+    </FILTER>
+  </QUERY>
+  <!-- Query 2: Hämtar ankomsttider vid slutstationen -->
+  <QUERY objecttype="TrainAnnouncement" schemaversion="1.4" orderby="AdvertisedTimeAtLocation">
+    <FILTER>
+      <AND>
+        <EQ name="ActivityType" value="Ankomst" />
+        ${toLocNode}
+        <EQ name="Advertised" value="true" />
+        ${fromDestNode}
+        <GT name="AdvertisedTimeAtLocation" value="$dateadd(-14:00:00)" />
+        <LT name="AdvertisedTimeAtLocation" value="$dateadd(14:00:00)" />
+      </AND>
+    </FILTER>
+  </QUERY>
+</REQUEST>`;
+      },
+
+      async refreshData(isManualSync = false) {
+        const syncBtn = document.getElementById('syncBtn');
+        const syncLabel = document.getElementById('lastSyncTimeLabel');
+
+        if (!this.state.apiKey || this.state.apiKey.trim().length < 5) {
+          this.state.departures = [];
+          this.state.isConnected = false;
+          this.updateStatusBadge();
+          this.renderMorningView();
+          if (isManualSync) {
+            this.showToast("Ingen API-nyckel hittades. Det krävs för att hämta data.", "!");
+          }
+          return;
+        }
+
+        if (syncBtn) {
+          syncBtn.innerText = "⏳ SYNKAR...";
+          syncBtn.disabled = true;
+        }
+        if (isManualSync) {
+          this.showToast("Synkroniserar live-data med Trafikverket...", "!");
+        }
+
+        try {
+          const liveData = await this.fetchFromTrafikverket(this.state.apiKey.trim());
+          this.state.departures = liveData;
+          this.state.isConnected = true;
+          this.state.lastSyncTime = new Date().toTimeString().split(' ')[0];
+
+          if (syncLabel) {
+            syncLabel.innerText = `Synkad kl ${this.state.lastSyncTime}`;
+          }
+
+          if (this.state.selectedTrainId) {
+            const stillExists = this.state.departures.find(d => d.id === this.state.selectedTrainId);
+            if (!stillExists) {
+              this.state.selectedTrainId = null;
+            }
+          }
+
+          if (syncBtn) {
+            syncBtn.innerText = "✓ SYNKAD";
+            syncBtn.className = "bg-signalGreen text-white border border-white/30 px-2 py-0.5 font-mono text-[10px] font-bold transition";
+            setTimeout(() => {
+              syncBtn.innerText = "↻ SYNK";
+              syncBtn.className = "bg-asphaltLight hover:bg-neutral-700 text-paper border border-neutral-600 px-2 py-0.5 font-mono text-[10px] active:translate-y-0.5 transition";
+              syncBtn.disabled = false;
+            }, 2200);
+          }
+
+          this.showToast(`Synkroniserad kl ${this.state.lastSyncTime}! Hämtade ${liveData.length} tåg från Trafikverket.`, "!");
+        } catch (e) {
+          console.error("API-fel vid anrop mot Trafikverket:", e);
+          this.state.departures = [];
+          this.state.isConnected = false;
+          if (syncBtn) {
+            syncBtn.innerText = "↻ SYNK";
+            syncBtn.disabled = false;
+          }
+          this.showToast(`Kunde inte synka: ${e.message}. Kontrollera uppkoppling.`, "!");
+        }
+
+        this.updateStatusBadge();
+        this.renderMorningView();
+      },
+
+      updateStatusBadge() {
+        const badge = document.getElementById('liveStatusBadge');
+        if (this.state.isConnected) {
+          badge.className = "font-mono text-[10px] uppercase px-1.5 py-0.5 bg-signalGreen text-white font-bold";
+          badge.innerText = "LIVE TRAFIKVERKET";
+        } else {
+          badge.className = "font-mono text-[10px] uppercase px-1.5 py-0.5 border border-signalYellow text-signalYellow";
+          badge.innerText = "FEL VID ANSLUTNING";
+        }
+      },
+
+      async fetchFromTrafikverket(apiKey) {
+        const xml = this.buildXmlQuery(apiKey, this.state.fromSig, this.state.toSig);
+        const directUrl = "https://api.trafikinfo.trafikverket.se/v2/data.json";
+        const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(directUrl);
+
+        let response;
+        try {
+          const targetUrl = this.state.useProxy ? proxyUrl : directUrl;
+          response = await fetch(targetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/xml' },
+            body: xml
+          });
+        } catch (networkErr) {
+          response = await fetch(proxyUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/xml' },
+            body: xml
+          });
+        }
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const json = await response.json();
+        
+        const itemsDep = json?.RESPONSE?.RESULT?.[0]?.TrainAnnouncement || [];
+        const itemsArr = json?.RESPONSE?.RESULT?.[1]?.TrainAnnouncement || [];
+
+        const pad = n => String(n).padStart(2, '0');
+        const parseTime = (dateObj) => `${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}`;
+
+        const arrivalMap = {};
+        itemsArr.forEach(item => {
+           const adv = new Date(item.AdvertisedTimeAtLocation);
+           const est = item.EstimatedTimeAtLocation ? new Date(item.EstimatedTimeAtLocation) : null;
+           const act = item.TimeAtLocation ? new Date(item.TimeAtLocation) : null;
+           const refTime = act || est;
+           const delay = refTime ? Math.max(0, Math.round((refTime - adv) / 60000)) : 0;
+
+           arrivalMap[item.AdvertisedTrainIdent] = {
+               advertisedArrival: parseTime(adv),
+               estimatedArrival: refTime && delay > 0 ? parseTime(refTime) : null,
+               arrivalDelay: delay,
+               arrivalCanceled: !!item.Canceled
+           };
+        });
+
+        return itemsDep.map((item, idx) => {
+          const adv = new Date(item.AdvertisedTimeAtLocation);
+          const est = item.EstimatedTimeAtLocation ? new Date(item.EstimatedTimeAtLocation) : null;
+          const act = item.TimeAtLocation ? new Date(item.TimeAtLocation) : null;
+          const refTime = act || est;
+
+          const delay = refTime ? Math.max(0, Math.round((refTime - adv) / 60000)) : 0;
+          const advStr = parseTime(adv);
+          const estStr = refTime && delay > 0 ? parseTime(refTime) : null;
+          const dev = item.Deviation ? item.Deviation.map(d => d.Description || d).join(', ') : null;
+
+          const prodDesc = item.ProductInformation?.map(p => p.Description).filter(Boolean).join(' ') || '';
+          const owner = item.InformationOwner || '';
+          let operatorLabel = prodDesc || owner || 'Persontåg';
+
+          // Byt namn på SL till SL-Pendeln
+          if (operatorLabel.trim().toUpperCase() === 'SL') {
+            operatorLabel = 'SL-Pendeln';
+          }
+
+          const arrInfo = arrivalMap[item.AdvertisedTrainIdent] || {};
+          
+          let fallbackArrStr = '';
+          if (!arrInfo.advertisedArrival) {
+             const arrTot = adv.getHours() * 60 + adv.getMinutes() + 38;
+             fallbackArrStr = `${pad(Math.floor(arrTot / 60) % 24)}:${pad(arrTot % 60)}`;
+          }
+
+          return {
+            id: item.ActivityId || `live-${item.AdvertisedTrainIdent}-${idx}`,
+            operator: operatorLabel,
+            trainNo: String(item.AdvertisedTrainIdent || '---'),
+            advertisedTime: advStr,
+            estimatedTime: estStr,
+            track: item.TrackAtLocation || '-',
+            delayMinutes: delay,
+            isCanceled: !!item.Canceled,
+            deviation: dev,
+            inMorningWindow: advStr >= '07:00' && advStr <= '08:30',
+            
+            advertisedArrival: arrInfo.advertisedArrival || fallbackArrStr,
+            estimatedArrival: arrInfo.estimatedArrival || null,
+            arrivalDelay: arrInfo.arrivalDelay || 0,
+            arrivalCanceled: arrInfo.arrivalCanceled || !!item.Canceled
+          };
+        });
+      },
+
+      getHeroTrain() {
+        return this.state.departures.find(d => d.id === this.state.selectedTrainId) || null;
+      },
+
+      selectTrain(trainId) {
+        this.state.selectedTrainId = trainId;
+        const t = this.getHeroTrain();
+        if (t) {
+          this.state.favTrainNo = t.trainNo;
+          localStorage.setItem('mp_fav_train', t.trainNo);
+          this.renderMorningView();
+          this.showToast(`Valt pendlartåg: ${t.operator} ${t.trainNo} (${t.advertisedTime})`, '!');
+        }
+      },
+
+      renderMorningView() {
+        const hero = this.getHeroTrain();
+        const destName = this.state.toSig.toUpperCase() === 'CST' ? 'Stockholm C/City' : (this.state.toSig.toUpperCase() === 'U' ? 'Uppsala C' : this.state.toSig.toUpperCase());
+
+        if (!hero) {
+          document.getElementById('heroOperator').innerText = "VÄLJ TÅG I LISTAN";
+          document.getElementById('heroTrainNo').innerText = "INGET VALT TÅG";
+          document.getElementById('heroDest').innerText = "";
+          document.getElementById('heroAdvTime').innerText = "--:--";
+          document.getElementById('heroAdvTime').className = "font-mono text-3xl font-extrabold text-white tracking-tighter";
+          document.getElementById('heroEstTime').classList.add('hidden');
+          document.getElementById('heroTrack').innerText = "-";
+          document.getElementById('heroArrival').innerText = "--:--";
+          document.getElementById('heroStatusBadge').className = "px-2.5 py-1 font-mono text-xs font-extrabold uppercase bg-neutral-700 text-white";
+          
+          if (!this.state.apiKey) {
+            document.getElementById('heroStatusBadge').innerText = "ANGE API-NYCKEL";
+            document.getElementById('heroDelayNote').className = "text-[10px] font-mono text-neutral-400 mt-1";
+            document.getElementById('heroDelayNote').innerText = "Väntar på data...";
+          } else {
+            document.getElementById('heroStatusBadge').innerText = "VÄNTAR PÅ VAL";
+            document.getElementById('heroDelayNote').className = "text-[10px] font-mono text-signalYellow mt-1";
+            document.getElementById('heroDelayNote').innerText = "Klicka på en avgång i listan nedan för att se detaljer.";
+          }
+          
+          document.getElementById('heroDeviationBanner').classList.add('hidden');
+        } else {
+          document.getElementById('heroOperator').innerText = hero.operator;
+          document.getElementById('heroTrainNo').innerText = `TÅG ${hero.trainNo}`;
+          document.getElementById('heroDest').innerText = `mot ${destName}`;
+          document.getElementById('heroTrack').innerText = hero.track;
+
+          const advEl = document.getElementById('heroAdvTime');
+          const estEl = document.getElementById('heroEstTime');
+          const statusBadge = document.getElementById('heroStatusBadge');
+          const delayNote = document.getElementById('heroDelayNote');
+          const devBanner = document.getElementById('heroDeviationBanner');
+          const devText = document.getElementById('heroDeviationText');
+          const arrBox = document.getElementById('heroArrival');
+
+          const isTotalCanceled = hero.isCanceled || hero.arrivalCanceled;
+
+          if (isTotalCanceled) {
+            advEl.className = "font-mono text-2xl font-extrabold text-neutral-500 line-through";
+            advEl.innerText = hero.advertisedTime;
+            estEl.classList.remove('hidden');
+            estEl.className = "font-mono text-xl font-extrabold text-signalRed";
+            estEl.innerText = "INSTÄLLT";
+            statusBadge.className = "px-2.5 py-1 font-mono text-xs font-extrabold uppercase bg-signalRed text-white";
+            statusBadge.innerText = "INSTÄLLT";
+            delayNote.className = "text-[10px] font-mono text-red-400 mt-1";
+            delayNote.innerText = "Berättigar till resegaranti / ersättning";
+            arrBox.innerHTML = `<span class="line-through text-neutral-500 text-sm">${hero.advertisedArrival}</span>`;
+          } else {
+            if (hero.delayMinutes > 0) {
+              advEl.className = "font-mono text-xl font-bold text-neutral-400 line-through";
+              advEl.innerText = hero.advertisedTime;
+              estEl.classList.remove('hidden');
+              estEl.className = "font-mono text-3xl font-extrabold text-signalYellow tracking-tighter";
+              estEl.innerText = hero.estimatedTime;
+            } else {
+              advEl.className = "font-mono text-3xl font-extrabold text-white tracking-tighter";
+              advEl.innerText = hero.advertisedTime;
+              estEl.classList.add('hidden');
+            }
+            
+            if (hero.arrivalDelay > 0 && hero.estimatedArrival) {
+               arrBox.innerHTML = `<div class="leading-tight"><span class="line-through text-neutral-500 text-[11px] block">${hero.advertisedArrival}</span><span class="text-signalRed text-base font-extrabold block">${hero.estimatedArrival}</span></div>`;
+            } else {
+               arrBox.innerHTML = hero.advertisedArrival;
+            }
+
+            if (hero.arrivalDelay > 0) {
+              statusBadge.className = "px-2.5 py-1 font-mono text-xs font-extrabold uppercase bg-signalRed text-white";
+              statusBadge.innerText = `+${hero.arrivalDelay} MIN SEN`;
+              delayNote.className = "text-[10px] font-mono text-signalYellow mt-1";
+              delayNote.innerText = hero.arrivalDelay >= 20 ? "! ≥20 min: Rätt till förseningsersättning!" : "Beräknad ny ankomsttid";
+            } else {
+              statusBadge.className = "px-2.5 py-1 font-mono text-xs font-extrabold uppercase bg-signalGreen text-white";
+              statusBadge.innerText = "I TID";
+              delayNote.className = "text-[10px] font-mono text-emerald-400 mt-1";
+              delayNote.innerText = "Ankommer i tid";
+            }
+          }
+
+          if (hero.deviation) {
+            devBanner.classList.remove('hidden');
+            devText.innerText = hero.deviation;
+          } else {
+            devBanner.classList.add('hidden');
+          }
+        }
+
+        let list = this.state.departures;
+        if (this.state.filter === 'window') {
+          list = list.filter(d => d.inMorningWindow);
+        } else if (this.state.filter === 'delayed') {
+          list = list.filter(d => d.delayMinutes > 0 || d.arrivalDelay > 0 || d.isCanceled || d.arrivalCanceled);
+        }
+
+        document.getElementById('trainCountLabel').innerText = `${list.length} TÅG`;
+        const tbody = document.getElementById('departuresTableBody');
+        tbody.innerHTML = '';
+
+        if (!this.state.apiKey) {
+          tbody.innerHTML = `
+            <div class="p-6 text-center space-y-2">
+              <div class="font-mono text-xs font-bold text-asphalt">Laddar tågdata...</div>
+            </div>
+          `;
+          return;
+        }
+
+        if (list.length === 0) {
+          tbody.innerHTML = `<div class="p-6 text-center font-mono text-xs text-neutral-500">Inga tåg matchar det valda filtret just nu. Tryck på "Alla tåg idag" eller ↻ SYNK.</div>`;
+          return;
+        }
+
+        list.forEach(train => {
+          const isSelected = hero && train.id === hero.id;
+          const row = document.createElement('div');
+          row.onclick = () => this.selectTrain(train.id);
+          row.className = `grid grid-cols-12 items-center px-3 py-2.5 cursor-pointer transition ${
+            isSelected ? 'bg-signalYellow/30 font-bold border-l-4 border-asphalt' : 'hover:bg-paperDark/60'
+          }`;
+
+          const advArr = train.advertisedArrival;
+          const isTotalCanceled = train.isCanceled || train.arrivalCanceled;
+
+          let timeCell = '';
+
+          if (isTotalCanceled) {
+            timeCell = `
+              <div class="leading-tight opacity-60">
+                <span class="font-mono text-[13px] font-extrabold text-asphalt line-through block">${train.advertisedTime}</span>
+                <span class="font-mono text-[9px] text-neutral-500 line-through block">➔ Ank ${advArr}</span>
+              </div>
+            `;
+          } else {
+            const depHtml = (train.delayMinutes > 0) 
+              ? `<div class="flex items-center gap-1"><span class="font-mono text-[11px] text-neutral-400 line-through">${train.advertisedTime}</span><span class="font-mono text-[13px] font-extrabold text-signalRed">${train.estimatedTime}</span></div>`
+              : `<span class="font-mono text-[13px] font-extrabold text-asphalt block">${train.advertisedTime}</span>`;
+              
+            const arrHtml = (train.arrivalDelay > 0)
+              ? `<div class="flex items-center gap-1"><span class="font-mono text-[9px] text-neutral-400 line-through">Ank ${advArr}</span><span class="font-mono text-[9px] text-signalRed">Ank ${train.estimatedArrival}</span></div>`
+              : `<span class="font-mono text-[9px] text-neutral-500 block">➔ Ank ${advArr}</span>`;
+
+            timeCell = `
+              <div class="leading-tight">
+                ${depHtml}
+                ${arrHtml}
+              </div>
+            `;
+          }
+
+          let statusCell = `<span class="inline-block font-mono text-[10px] font-bold px-1.5 py-0.5 bg-emerald-100 text-signalGreen border border-signalGreen">I TID</span>`;
+          if (isTotalCanceled) {
+            statusCell = `<span class="inline-block font-mono text-[10px] font-bold px-1.5 py-0.5 bg-signalRed text-white">INSTÄLLT</span>`;
+          } else if (train.arrivalDelay > 0) {
+            statusCell = `<span class="inline-block font-mono text-[10px] font-bold px-1.5 py-0.5 bg-amber-200 text-asphalt border border-asphalt">+${train.arrivalDelay}m</span>`;
+          }
+
+          row.innerHTML = `
+            <div class="col-span-3">${timeCell}</div>
+            <div class="col-span-4 pr-1">
+              <div class="text-xs font-bold text-asphalt flex items-center gap-1">
+                ${isSelected ? '<span>*</span>' : ''}
+                <span class="truncate">${train.operator}</span>
+              </div>
+              <div class="font-mono text-[10px] text-neutral-600">Tåg ${train.trainNo} ${train.deviation ? '• !' : ''}</div>
+            </div>
+            <div class="col-span-2 text-center">
+              <span class="font-mono text-xs font-extrabold bg-asphalt text-signalYellow px-1.5 py-0.5">${train.track}</span>
+            </div>
+            <div class="col-span-3 text-right">${statusCell}</div>
+          `;
+          tbody.appendChild(row);
+        });
+      },
+
+      calculateCompensationTier(delayMinutes, isCanceled) {
+        if (isCanceled || delayMinutes >= 60) {
+          return { percent: '100 % ersättning (eller Taxi)', color: 'bg-signalRed text-white' };
+        }
+        if (delayMinutes >= 40) {
+          return { percent: '75 % ersättning av biljett', color: 'bg-asphalt text-signalYellow' };
+        }
+        if (delayMinutes >= 20) {
+          return { percent: '50 % ersättning av biljett', color: 'bg-signalYellow text-asphalt' };
+        }
+        return { percent: 'Under 20 min (Ingen resegaranti)', color: 'bg-paperDark text-neutral-600' };
+      },
+
+      logTrainAsEvidence(trainId) {
+        const train = this.state.departures.find(d => d.id === trainId) || this.getHeroTrain();
+        if (!train) {
+          this.showToast("Synkronisera och välj ett riktigt tåg först!", "!");
+          return;
+        }
+
+        const arrivalDelay = train.arrivalDelay || 0;
+        const isCanceled = train.isCanceled || train.arrivalCanceled;
+
+        const entry = {
+          id: 'ev-' + Date.now(),
+          date: new Date().toISOString().split('T')[0],
+          loggedAt: new Date().toTimeString().substring(0, 5),
+          operator: train.operator,
+          trainNo: train.trainNo,
+          from: this.state.fromSig.toUpperCase() === 'U' ? 'Uppsala C' : (this.state.fromSig.toUpperCase() === 'CST' ? 'Stockholm C/City' : this.state.fromSig),
+          to: this.state.toSig.toUpperCase() === 'CST' ? 'Stockholm C/City' : (this.state.toSig.toUpperCase() === 'U' ? 'Uppsala C' : this.state.toSig),
+          advertised: train.advertisedTime,
+          actual: train.estimatedTime || train.advertisedTime,
+          delayMinutes: arrivalDelay,
+          isCanceled: isCanceled,
+          deviation: train.deviation || 'Ingen angiven orsak vid loggningstillfället'
+        };
+
+        this.state.evidenceLog.unshift(entry);
+        localStorage.setItem('mp_evidence_log', JSON.stringify(this.state.evidenceLog));
+        this.renderEvidenceList();
+        this.showToast(`Tåg ${train.trainNo} sparat som tidsstämplat bevis!`, '§');
+      },
+
+      removeEvidence(id) {
+        this.state.evidenceLog = this.state.evidenceLog.filter(e => e.id !== id);
+        localStorage.setItem('mp_evidence_log', JSON.stringify(this.state.evidenceLog));
+        this.renderEvidenceList();
+      },
+
+      renderEvidenceList() {
+        const container = document.getElementById('evidenceCardsContainer');
+        const badge = document.getElementById('evidenceCountBadge');
+        if (badge) badge.innerText = `${this.state.evidenceLog.length} st`;
+        if (!container) return;
+
+        if (this.state.evidenceLog.length === 0) {
+          container.innerHTML = `
+            <div class="border-2 border-dashed border-asphalt p-6 text-center font-mono text-xs text-neutral-600">
+              Inga tåg sparade ännu. Klicka på "+ SPARA BEVIS" på startsidan.
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = '';
+        this.state.evidenceLog.forEach(ev => {
+          const tier = this.calculateCompensationTier(ev.delayMinutes, ev.isCanceled);
+          const card = document.createElement('div');
+          card.className = "border-2 border-asphalt bg-white shadow-brutal-sm p-3 font-mono text-xs space-y-2";
+          card.innerHTML = `
+            <div class="flex items-center justify-between border-b border-neutral-300 pb-1.5">
+              <div>
+                <span class="font-extrabold text-sm">${ev.operator} #${ev.trainNo}</span>
+                <span class="text-[10px] text-neutral-500 ml-1">${ev.date}</span>
+              </div>
+              <button onclick="app.removeEvidence('${ev.id}')" class="text-[10px] text-signalRed hover:underline font-bold">TA BORT ✕</button>
+            </div>
+            <div class="grid grid-cols-3 gap-2 bg-paper p-2 border border-neutral-300">
+              <div>
+                <div class="text-[9px] text-neutral-500 uppercase">Ordinarie</div>
+                <div class="font-bold">${ev.advertised}</div>
+              </div>
+              <div>
+                <div class="text-[9px] text-neutral-500 uppercase">Faktisk/Ny</div>
+                <div class="font-bold text-signalRed">${ev.isCanceled ? 'INSTÄLLT' : ev.actual}</div>
+              </div>
+              <div>
+                <div class="text-[9px] text-neutral-500 uppercase">Avvikelse</div>
+                <div class="font-extrabold">${ev.isCanceled ? 'Inställt' : '+' + ev.delayMinutes + ' min'}</div>
+              </div>
+            </div>
+            <div class="flex items-center justify-between pt-0.5">
+              <span class="px-2 py-0.5 text-[10px] font-bold ${tier.color}">${tier.percent}</span>
+              <span class="text-[10px] text-neutral-500">Loggad kl ${ev.loggedAt}</span>
+            </div>
+            <div class="text-[10px] text-neutral-600">Orsak: ${ev.deviation}</div>
+          `;
+          container.appendChild(card);
+        });
+      },
+
+      copyEvidenceReport() {
+        if (!this.state.evidenceLog.length) {
+          this.showToast("Spara minst ett tåg först!", "!");
+          return;
+        }
+        let report = "UNDERLAG FÖR FÖRSENINGSERSÄTTNING (TRAFIKVERKET DATA)\n====================================================\n";
+        this.state.evidenceLog.forEach((ev, i) => {
+          const tier = this.calculateCompensationTier(ev.delayMinutes, ev.isCanceled);
+          report += `\n[${i + 1}] Datum: ${ev.date} (Sparad kl ${ev.loggedAt})\n`;
+          report += `Tåg: ${ev.operator}, Tågnummer ${ev.trainNo}\n`;
+          report += `Sträcka: ${ev.from} -> ${ev.to}\n`;
+          report += `Ordinarie avgång: ${ev.advertised} | Faktisk/Beräknad: ${ev.isCanceled ? 'INSTÄLLT' : ev.actual}\n`;
+          report += `Försening: ${ev.isCanceled ? 'Inställt avgång' : ev.delayMinutes + ' minuter'} (${tier.percent})\n`;
+          report += `Trafikverkets orsakskod: ${ev.deviation}\n`;
+        });
+        this.copyToClipboard(report, "Färdigt ersättningskrav kopierat till urklipp!");
+      },
+
+      copyToClipboard(text, successMsg) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          this.showToast(successMsg, "!");
+        } catch (e) {
+          this.showToast("Kunde inte kopiera automatiskt", "!");
+        }
+        document.body.removeChild(ta);
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => app.init());
+  </script>
+</body>
+</html>
