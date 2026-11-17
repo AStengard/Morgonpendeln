@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Morgonpendeln Favicon: Swedish Railway Brutalist Badge -->
+  <!-- Base yellow badge with rounded corners -->
+  <rect width="64" height="64" rx="14" fill="#FCD116"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="12.5" fill="none" stroke="#141514" stroke-width="2.5"/>
+
+  <!-- Train body silhouette -->
+  <path d="M 20 14 Q 32 10.5 44 14 L 48 35 Q 48.5 42 43 45 L 21 45 Q 15.5 42 16 35 Z" fill="#141514"/>
+
+  <!-- Panoramic cab windshield with center pillar -->
+  <rect x="20" y="18" width="24" height="10" rx="2.5" fill="#FCD116"/>
+  <line x1="32" y1="18" x2="32" y2="28" stroke="#141514" stroke-width="2"/>
+
+  <!-- Statutory Swedish 3-point headlights (triangle pattern) -->
+  <circle cx="32" cy="14" r="2" fill="#FFFFFF"/>
+  <circle cx="22" cy="35" r="3.5" fill="#FFFFFF"/>
+  <circle cx="42" cy="35" r="3.5" fill="#FFFFFF"/>
+
+  <!-- Front grille accent -->
+  <line x1="27" y1="40.5" x2="37" y2="40.5" stroke="#FCD116" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Coupler (koppel) -->
+  <rect x="29" y="45" width="6" height="4" rx="1" fill="#141514"/>
+
+  <!-- Railroad tracks in perspective -->
+  <line x1="14" y1="53" x2="50" y2="53" stroke="#141514" stroke-width="3" stroke-linecap="round"/>
+  <line x1="21" y1="53" x2="17" y2="59" stroke="#141514" stroke-width="3" stroke-linecap="round"/>
+  <line x1="43" y1="53" x2="47" y2="59" stroke="#141514" stroke-width="3" stroke-linecap="round"/>
+</svg>

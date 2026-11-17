@@ -1,15 +1,25 @@
 <!DOCTYPE html>
 <html lang="sv" class="h-full bg-[#111211] text-[#141514] antialiased">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>AVGÅNG // Uppsala C ➔ Stockholm C</title>
+  <title id="pageTitle" data-i18n="pageTitle">AVGÅNG // Uppsala C ➔ Stockholm C</title>
+  <!-- Favicon & App Icons -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <meta name="theme-color" content="#141514">
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts: Space Grotesk (Rubriker/Skyltar) & JetBrains Mono (Tider/Spår/Tågnr) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet">
   <script>
     tailwind.config = {
       theme: {
@@ -40,41 +50,64 @@
     }
   </script>
   <style>
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: #E6E1D6; }
-    ::-webkit-scrollbar-thumb { background: #141514; }
-    
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #E6E1D6;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #141514;
+    }
+
     /* Biljett-klippning & Perrongtavla-detaljer */
     .ticket-notch {
       background-image: radial-gradient(circle at 0 50%, #F4F1EA 6px, transparent 7px),
-                        radial-gradient(circle at 100% 50%, #F4F1EA 6px, transparent 7px);
+        radial-gradient(circle at 100% 50%, #F4F1EA 6px, transparent 7px);
     }
+
     .flap-row {
       background: linear-gradient(180deg, #1A1C1A 0%, #141514 49%, #090A09 50%, #141514 100%);
     }
+
     .dot-matrix {
       background-image: radial-gradient(#2c2e2c 1px, transparent 1px);
       background-size: 6px 6px;
     }
   </style>
 </head>
+
 <body class="h-full flex justify-center bg-[#0C0D0C] font-sans select-none">
 
   <!-- MOBILRAM (Centrerad på desktop, fullskärm på mobil, ser ut som ett fysiskt instrument/tidtabell) -->
-  <div class="w-full max-w-[460px] h-full flex flex-col bg-paper border-x-2 border-asphalt relative overflow-hidden shadow-2xl">
+  <div
+    class="w-full max-w-[460px] h-full flex flex-col bg-paper border-x-2 border-asphalt relative overflow-hidden shadow-2xl">
 
     <!-- TOPP-TAVLA (SVENSK STATIONSSKYLT) -->
     <header class="bg-asphalt text-paper px-4 pt-3 pb-3 border-b-2 border-asphalt z-30 shrink-0">
       <div class="flex items-center justify-between border-b border-neutral-800 pb-2 mb-2">
         <div class="flex items-center gap-2">
-          <span class="bg-signalYellow text-asphalt font-mono font-extrabold text-xs px-1.5 py-0.5 tracking-tighter">SPÅR / U➔CST</span>
-          <span id="liveStatusBadge" class="font-mono text-[10px] uppercase px-1.5 py-0.5 border border-signalYellow text-signalYellow">
+          <span id="trackBadge" data-i18n="trackLabel"
+            class="bg-signalYellow text-asphalt font-mono font-extrabold text-xs px-1.5 py-0.5 tracking-tighter">SPÅR /
+            U➔CST</span>
+          <span id="liveStatusBadge" data-i18n="statusNotConnected"
+            class="font-mono text-[10px] uppercase px-1.5 py-0.5 border border-signalYellow text-signalYellow">
             EJ ANSLUTEN
           </span>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5">
           <span id="liveClock" class="font-mono text-xs font-bold text-signalYellow tracking-wider">07:15:00</span>
-          <button id="syncBtn" onclick="app.refreshData(true)" title="Synkronisera live-data från Trafikverket" class="bg-asphaltLight hover:bg-neutral-700 text-paper border border-neutral-600 px-2 py-0.5 font-mono text-[10px] active:translate-y-0.5 transition">
+          <!-- Språkväxlarknapp med flagga / Language switch button with flags -->
+          <button id="langToggleBtn" onclick="app.toggleLanguage()" title="Växla språk / Switch language (SV/EN)"
+            class="bg-asphaltLight hover:bg-neutral-700 text-paper border border-neutral-600 px-2 py-0.5 font-mono text-[10px] font-bold flex items-center gap-1 active:translate-y-0.5 transition cursor-pointer">
+            <span id="langFlag">🇸🇪</span>
+            <span id="langCode">SV</span>
+          </button>
+          <button id="syncBtn" onclick="app.refreshData(true)" title="Synkronisera live-data från Trafikverket" data-i18n="syncBtn"
+            class="bg-asphaltLight hover:bg-neutral-700 text-paper border border-neutral-600 px-2 py-0.5 font-mono text-[10px] active:translate-y-0.5 transition cursor-pointer">
             ↻ SYNK
           </button>
         </div>
@@ -82,14 +115,15 @@
 
       <div class="flex items-baseline justify-between">
         <div>
-          <div class="text-[10px] font-mono uppercase text-neutral-400">Morgonsträcka</div>
+          <div class="text-[10px] font-mono uppercase text-neutral-400" data-i18n="morningRoute">Morgonsträcka</div>
           <h1 id="headerRouteTitle" class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             <span>UPPSALA C</span>
             <span class="text-signalYellow font-mono text-base">➔</span>
             <span>STOCKHOLM C</span>
           </h1>
         </div>
-        <button onclick="app.toggleDirection()" class="text-[10px] font-mono underline text-neutral-300 hover:text-signalYellow">
+        <button onclick="app.toggleDirection()" data-i18n="switchDirection"
+          class="text-[10px] font-mono underline text-neutral-300 hover:text-signalYellow">
           Vänd sträcka ⇄
         </button>
       </div>
@@ -106,29 +140,33 @@
         <!-- Filter-rad -->
         <div class="flex flex-wrap items-center justify-between gap-1.5">
           <div class="inline-flex border-2 border-asphalt bg-paperDark p-0.5">
-            <button onclick="app.setFilter('all')" id="filter-all" class="px-2.5 py-1 text-[11px] font-mono font-bold text-asphalt hover:bg-neutral-300">
+            <button onclick="app.setFilter('all')" id="filter-all" data-i18n="filterAll"
+              class="px-2.5 py-1 text-[11px] font-mono font-bold text-asphalt hover:bg-neutral-300">
               Alla tåg idag
             </button>
-            <button onclick="app.setFilter('window')" id="filter-window" class="px-2.5 py-1 text-[11px] font-mono font-bold bg-asphalt text-paper">
+            <button onclick="app.setFilter('window')" id="filter-window" data-i18n="filterWindow"
+              class="px-2.5 py-1 text-[11px] font-mono font-bold bg-asphalt text-paper">
               07:00–08:30
             </button>
-            <button onclick="app.setFilter('delayed')" id="filter-delayed" class="px-2.5 py-1 text-[11px] font-mono font-bold text-asphalt hover:bg-neutral-300">
+            <button onclick="app.setFilter('delayed')" id="filter-delayed" data-i18n="filterDelayed"
+              class="px-2.5 py-1 text-[11px] font-mono font-bold text-asphalt hover:bg-neutral-300">
               Försenade
             </button>
           </div>
-          <span id="lastSyncTimeLabel" class="font-mono text-[10px] text-neutral-600">Ej synkad än</span>
+          <span id="lastSyncTimeLabel" data-i18n="notSyncedYet" class="font-mono text-[10px] text-neutral-600">Ej synkad än</span>
         </div>
 
         <!-- HERO-KORT: MITT VALDA PENDLARTÅG (SPLIT-FLAP STIL) -->
         <div class="bg-asphalt text-paper border-2 border-asphalt shadow-brutal relative">
           <!-- Övre gul tåglist -->
-          <div class="bg-signalYellow text-asphalt px-3 py-1.5 flex items-center justify-between border-b-2 border-asphalt">
+          <div
+            class="bg-signalYellow text-asphalt px-3 py-1.5 flex items-center justify-between border-b-2 border-asphalt">
             <div class="flex items-center gap-2 font-mono text-xs font-extrabold uppercase">
-              <span>★ MITT PENDLARTÅG</span>
+              <span data-i18n="heroTag">★ MITT PENDELTÅG</span>
               <span>•</span>
               <span id="heroOperator">—</span>
             </div>
-            <span id="heroCountdown" class="font-mono text-[11px] font-bold bg-asphalt text-signalYellow px-1.5 py-0.5">
+            <span id="heroCountdown" data-i18n="heroCountdown" class="font-mono text-[11px] font-bold bg-asphalt text-signalYellow px-1.5 py-0.5">
               LIVE STATUS
             </span>
           </div>
@@ -137,15 +175,17 @@
           <div class="p-4 dot-matrix">
             <div class="flex items-start justify-between mb-3">
               <div>
-                <div class="text-[10px] font-mono text-neutral-400 uppercase">Tågnummer & Destination</div>
+                <div class="text-[10px] font-mono text-neutral-400 uppercase" data-i18n="heroTrainNoLabel">Tågnummer & Destination</div>
                 <div class="flex items-baseline gap-2">
-                  <span id="heroTrainNo" class="font-mono text-2xl font-extrabold text-white tracking-tight">INGET TÅG VALT</span>
+                  <span id="heroTrainNo" class="font-mono text-2xl font-extrabold text-white tracking-tight" data-i18n="heroNoTrain">INGET TÅG
+                    VALT</span>
                   <span id="heroDest" class="font-mono text-xs text-neutral-300"></span>
                 </div>
               </div>
 
               <!-- Status-skylt -->
-              <div id="heroStatusBadge" class="px-2.5 py-1 font-mono text-xs font-extrabold uppercase bg-neutral-700 text-white border border-white/20">
+              <div id="heroStatusBadge" data-i18n="heroWaitingSync"
+                class="px-2.5 py-1 font-mono text-xs font-extrabold uppercase bg-neutral-700 text-white border border-white/20">
                 VÄNTAR PÅ SYNK
               </div>
             </div>
@@ -154,58 +194,65 @@
             <div class="grid grid-cols-12 gap-2 my-3">
               <!-- Ordinarie & Beräknad Avgång -->
               <div class="col-span-6 flap-row border border-neutral-700 p-2.5">
-                <div class="text-[10px] font-mono text-neutral-400 uppercase">Avgångstid</div>
+                <div class="text-[10px] font-mono text-neutral-400 uppercase" data-i18n="heroDepTime">Avgångstid</div>
                 <div class="flex items-baseline gap-2 mt-0.5">
-                  <span id="heroAdvTime" class="font-mono text-3xl font-extrabold text-white tracking-tighter">--:--</span>
+                  <span id="heroAdvTime"
+                    class="font-mono text-3xl font-extrabold text-white tracking-tighter">--:--</span>
                   <span id="heroEstTime" class="font-mono text-lg font-extrabold text-signalYellow hidden">--:--</span>
                 </div>
-                <div id="heroDelayNote" class="text-[10px] font-mono text-neutral-400 mt-1">Anslut API-nyckel under fliken API & Tåg</div>
+                <div id="heroDelayNote" class="text-[10px] font-mono text-neutral-400 mt-1" data-i18n="heroClickDeparture">Klicka på en avgång i listan nedan för att se detaljer.</div>
               </div>
 
               <!-- Spår -->
-              <div class="col-span-3 flap-row border border-neutral-700 p-2.5 flex flex-col justify-between items-center text-center">
-                <div class="text-[10px] font-mono text-neutral-400 uppercase">Spår</div>
-                <div id="heroTrack" class="font-mono text-3xl font-extrabold text-signalYellow leading-none my-auto">-</div>
+              <div
+                class="col-span-3 flap-row border border-neutral-700 p-2.5 flex flex-col justify-between items-center text-center">
+                <div class="text-[10px] font-mono text-neutral-400 uppercase" data-i18n="heroTrack">Spår</div>
+                <div id="heroTrack" class="font-mono text-3xl font-extrabold text-signalYellow leading-none my-auto">-
+                </div>
                 <div class="text-[9px] font-mono text-neutral-400" id="heroFromLabel">Uppsala C</div>
               </div>
 
               <!-- Ankomst -->
               <div class="col-span-3 flap-row border border-neutral-700 p-2.5 flex flex-col justify-between">
-                <div class="text-[10px] font-mono text-neutral-400 uppercase">Ber. Ank</div>
+                <div class="text-[10px] font-mono text-neutral-400 uppercase" data-i18n="heroEstArr">Ber. Ank</div>
                 <div id="heroArrival" class="font-mono text-lg font-bold text-neutral-200 my-auto">--:--</div>
                 <div class="text-[9px] font-mono text-neutral-400">~38 min</div>
               </div>
             </div>
 
             <!-- Orsak / Avvikelse-remsa -->
-            <div id="heroDeviationBanner" class="hidden mt-2 bg-signalRed/20 border-l-4 border-signalRed p-2 font-mono text-xs text-red-200">
-              <strong class="text-white uppercase">Trafikverkets rapport:</strong>
+            <div id="heroDeviationBanner"
+              class="hidden mt-2 bg-signalRed/20 border-l-4 border-signalRed p-2 font-mono text-xs text-red-200">
+              <strong class="text-white uppercase" data-i18n="heroTrafikverketReport">Trafikverkets rapport:</strong>
               <span id="heroDeviationText"></span>
             </div>
 
             <!-- Knapprad under Hero -->
             <div class="mt-3 pt-2.5 border-t border-neutral-800 flex items-center justify-between gap-2">
-              <button onclick="app.logTrainAsEvidence(app.getHeroTrain()?.id)" class="flex-1 py-1.5 px-2.5 bg-paper text-asphalt hover:bg-signalYellow font-mono font-bold text-xs flex items-center justify-center gap-1.5 transition">
-                <span>+ SPARA BEVIS FÖR ERSÄTTNING</span>
+              <button onclick="app.logTrainAsEvidence(app.getHeroTrain()?.id)"
+                class="flex-1 py-1.5 px-2.5 bg-paper text-asphalt hover:bg-signalYellow font-mono font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                <span data-i18n="heroSaveEvidence">+ SPARA BEVIS FÖR ERSÄTTNING</span>
               </button>
-              <span class="text-[10px] font-mono text-neutral-400 px-1">Klicka på tåg nedan för att välja</span>
+              <span class="text-[10px] font-mono text-neutral-400 px-1" data-i18n="heroClickBelow">Klicka på tåg nedan för att välja</span>
             </div>
           </div>
         </div>
 
         <!-- AVGÅNGSTAVLA FÖR DAGENS TÅG -->
         <div class="border-2 border-asphalt bg-white shadow-brutal">
-          <div class="bg-asphalt text-paper px-3 py-2 flex items-center justify-between font-mono text-[11px] font-bold uppercase">
-            <span>Avgångar från Trafikverket (Klicka för att välja)</span>
+          <div
+            class="bg-asphalt text-paper px-3 py-2 flex items-center justify-between font-mono text-[11px] font-bold uppercase">
+            <span data-i18n="departuresTitle">Avgångar från Trafikverket (Klicka för att välja)</span>
             <span id="trainCountLabel" class="text-signalYellow">0 TÅG</span>
           </div>
 
           <!-- Kolumnrubriker -->
-          <div class="grid grid-cols-12 px-3 py-1.5 bg-paperDark border-b-2 border-asphalt font-mono text-[10px] font-bold uppercase text-neutral-600">
-            <div class="col-span-3">Avg/Ank</div>
-            <div class="col-span-4">Tåg / Operatör</div>
-            <div class="col-span-2 text-center">Spår</div>
-            <div class="col-span-3 text-right">Status</div>
+          <div
+            class="grid grid-cols-12 px-3 py-1.5 bg-paperDark border-b-2 border-asphalt font-mono text-[10px] font-bold uppercase text-neutral-600">
+            <div class="col-span-3" data-i18n="thDepArr">Avg/Ank</div>
+            <div class="col-span-4" data-i18n="thTrainOp">Tåg / Operatör</div>
+            <div class="col-span-2 text-center" data-i18n="thTrack">Spår</div>
+            <div class="col-span-3 text-right" data-i18n="thStatus">Status</div>
           </div>
 
           <!-- Rader -->
@@ -223,47 +270,55 @@
         <div class="border-2 border-asphalt bg-white p-3.5 shadow-brutal">
           <div class="flex items-center justify-between border-b-2 border-asphalt pb-2 mb-2.5">
             <div>
-              <span class="bg-asphalt text-signalYellow font-mono text-[10px] font-bold px-1.5 py-0.5 uppercase">RESEGARANTI-LOGG</span>
-              <h2 class="text-lg font-bold tracking-tight mt-0.5">Bevis & Ersättningskrav</h2>
+              <span data-i18n="evidenceLogBadge"
+                class="bg-asphalt text-signalYellow font-mono text-[10px] font-bold px-1.5 py-0.5 uppercase">RESEGARANTI-LOGG</span>
+              <h2 class="text-lg font-bold tracking-tight mt-0.5" data-i18n="evidenceTitle">Bevis & Ersättningskrav</h2>
             </div>
             <div class="text-right font-mono">
               <div id="evidenceCountBadge" class="text-xl font-extrabold">0 st</div>
-              <div class="text-[10px] text-neutral-500">sparade tåg</div>
+              <div class="text-[10px] text-neutral-500" data-i18n="savedTrainsLabel">sparade tåg</div>
             </div>
           </div>
 
-          <p class="text-xs text-neutral-700 leading-relaxed mb-3">
-            När tåget blir minst <strong>20 minuter försenat</strong> på sträckan Uppsala–Stockholm har du rätt till resegaranti (50–100 % av biljettpriset eller ersättning för utlägg/taxi vid SL/Mälartåg/SJ). Här sparas tidsstämplad live-data från Trafikverket för dina tåg.
+          <p class="text-xs text-neutral-700 leading-relaxed mb-3" data-i18n-html="evidenceDesc">
+            När tåget blir minst <strong>20 minuter försenat</strong> på sträckan Uppsala–Stockholm har du rätt till
+            resegaranti (50–100 % av biljettpriset eller ersättning för utlägg/taxi vid SL/Mälartåg/SJ). Här sparas
+            tidsstämplad live-data från Trafikverket för dina tåg.
           </p>
 
           <div class="flex flex-wrap gap-2">
-            <button onclick="app.copyEvidenceReport()" class="w-full py-2 px-3 bg-asphalt text-signalYellow hover:bg-neutral-800 font-mono font-bold text-xs border-2 border-asphalt shadow-brutal-sm active:translate-y-0.5 transition">
+            <button onclick="app.copyEvidenceReport()" data-i18n="copyReportBtn"
+              class="w-full py-2 px-3 bg-asphalt text-signalYellow hover:bg-neutral-800 font-mono font-bold text-xs border-2 border-asphalt shadow-brutal-sm active:translate-y-0.5 transition">
               KOPIERA FÄRDIGT ERSÄTTNINGSKRAV
             </button>
           </div>
         </div>
 
-        <!-- Ersättningslänkar -->
+        <!-- Ersättningslänkar (Operatörsnamn översätts ej) -->
         <div class="grid grid-cols-2 gap-2 font-mono text-center">
-          <a href="https://www.malardalstrafik.se/kundservice/ersaettning-vid-foersening" target="_blank" class="border-2 border-asphalt bg-paperDark p-2 hover:bg-signalYellow hover:shadow-brutal-sm active:translate-y-0.5 transition flex flex-col justify-center items-center">
-            <div class="text-[9px] font-bold uppercase text-neutral-600">Ansök hos</div>
+          <a href="https://www.malardalstrafik.se/kundservice/ersaettning-vid-foersening" target="_blank"
+            class="border-2 border-asphalt bg-paperDark p-2 hover:bg-signalYellow hover:shadow-brutal-sm active:translate-y-0.5 transition flex flex-col justify-center items-center">
+            <div class="text-[9px] font-bold uppercase text-neutral-600" data-i18n="claimAt">Ansök hos</div>
             <div class="text-sm font-extrabold text-asphalt tracking-tight">Mälartåg</div>
-            <div class="text-[9px] text-neutral-500 mt-1">Öppna formulär</div>
+            <div class="text-[9px] text-neutral-500 mt-1" data-i18n="openForm">Öppna formulär</div>
           </a>
-          <a href="https://www.sj.se/kundservice/forseningsersattning" target="_blank" class="border-2 border-asphalt bg-paperDark p-2 hover:bg-signalYellow hover:shadow-brutal-sm active:translate-y-0.5 transition flex flex-col justify-center items-center">
-            <div class="text-[9px] font-bold uppercase text-neutral-600">Ansök hos</div>
+          <a href="https://www.sj.se/kundservice/forseningsersattning" target="_blank"
+            class="border-2 border-asphalt bg-paperDark p-2 hover:bg-signalYellow hover:shadow-brutal-sm active:translate-y-0.5 transition flex flex-col justify-center items-center">
+            <div class="text-[9px] font-bold uppercase text-neutral-600" data-i18n="claimAt">Ansök hos</div>
             <div class="text-sm font-extrabold text-asphalt tracking-tight">SJ</div>
-            <div class="text-[9px] text-neutral-500 mt-1">Öppna formulär</div>
+            <div class="text-[9px] text-neutral-500 mt-1" data-i18n="openForm">Öppna formulär</div>
           </a>
-          <a href="https://sl.se/kundservice/forseningsersattning/" target="_blank" class="border-2 border-asphalt bg-paperDark p-2 hover:bg-signalYellow hover:shadow-brutal-sm active:translate-y-0.5 transition flex flex-col justify-center items-center">
-            <div class="text-[9px] font-bold uppercase text-neutral-600">Ansök hos</div>
+          <a href="https://sl.se/kundservice/forseningsersattning/" target="_blank"
+            class="border-2 border-asphalt bg-paperDark p-2 hover:bg-signalYellow hover:shadow-brutal-sm active:translate-y-0.5 transition flex flex-col justify-center items-center">
+            <div class="text-[9px] font-bold uppercase text-neutral-600" data-i18n="claimAt">Ansök hos</div>
             <div class="text-sm font-extrabold text-asphalt tracking-tight">SL</div>
-            <div class="text-[9px] text-neutral-500 mt-1">Öppna formulär</div>
+            <div class="text-[9px] text-neutral-500 mt-1" data-i18n="openForm">Öppna formulär</div>
           </a>
-          <a href="https://www.ul.se/kundservice/forseningsersattning/" target="_blank" class="border-2 border-asphalt bg-paperDark p-2 hover:bg-signalYellow hover:shadow-brutal-sm active:translate-y-0.5 transition flex flex-col justify-center items-center">
-            <div class="text-[9px] font-bold uppercase text-neutral-600">Ansök hos</div>
+          <a href="https://www.ul.se/kundservice/forseningsersattning/" target="_blank"
+            class="border-2 border-asphalt bg-paperDark p-2 hover:bg-signalYellow hover:shadow-brutal-sm active:translate-y-0.5 transition flex flex-col justify-center items-center">
+            <div class="text-[9px] font-bold uppercase text-neutral-600" data-i18n="claimAt">Ansök hos</div>
             <div class="text-sm font-extrabold text-asphalt tracking-tight">UL</div>
-            <div class="text-[9px] text-neutral-500 mt-1">Öppna formulär</div>
+            <div class="text-[9px] text-neutral-500 mt-1" data-i18n="openForm">Öppna formulär</div>
           </a>
         </div>
 
@@ -277,66 +332,77 @@
       <!-- FLIK 3: MORGONNOTIS (07:00-08:30)          -->
       <!-- ========================================== -->
       <section id="view-alerts" class="hidden space-y-4">
-        
+
         <!-- Svar på frågan: "Går det att göra?" -->
         <div class="border-2 border-asphalt bg-signalYellow p-3.5 shadow-brutal">
-          <h2 class="text-base font-bold leading-snug">
+          <h2 class="text-base font-bold leading-snug" data-i18n="alertsQTitle">
             Kan jag få en notis varje morgon för alla tåg kl. 07:00–08:30?
           </h2>
-          <div class="font-mono text-[10px] font-extrabold uppercase bg-asphalt text-signalYellow inline-block px-1.5 py-0.5 mb-1">
+          <div data-i18n="alertsQBadge"
+            class="font-mono text-[10px] font-extrabold uppercase bg-asphalt text-signalYellow inline-block px-1.5 py-0.5 mb-1">
             SVAR PÅ DIN FRÅGA: JA! SÅ HÄR GÖR DU
-          </div>          
-          <p class="text-xs mt-1.5 leading-relaxed text-asphalt/90">
-            Telefoner stänger ofta ner webbsidor i bakgrunden för att spara batteri. Det allra enklaste (och helt gratis) sättet att lösa detta utan att kunna koda, är att be telefonen skicka en påminnelse till dig varje morgon och automatiskt öppna upp den här webbappen. Följ den enkla guiden nedan!
+          </div>
+          <p class="text-xs mt-1.5 leading-relaxed text-asphalt/90" data-i18n="alertsQDesc">
+            Telefoner stänger ofta ner webbsidor i bakgrunden för att spara batteri. Det allra enklaste (och helt
+            gratis) sättet att lösa detta utan att kunna koda, är att be telefonen skicka en påminnelse till dig varje
+            morgon och automatiskt öppna upp den här webbappen. Följ den enkla guiden nedan!
           </p>
         </div>
 
         <!-- Detaljerad Guide -->
         <div class="border-2 border-asphalt bg-white p-3.5 shadow-brutal space-y-4">
-          <div class="font-mono text-sm font-extrabold uppercase flex items-center justify-between border-b-2 border-asphalt pb-2">
-            <span>Automatisk Morgonnotis (06:50)</span>
+          <div
+            class="font-mono text-sm font-extrabold uppercase flex items-center justify-between border-b-2 border-asphalt pb-2">
+            <span data-i18n="alertsGuideTitle">Automatisk Morgonnotis (06:50)</span>
           </div>
 
           <div class="space-y-4 text-xs">
-            
+
             <!-- iOS -->
             <div class="p-3 bg-paper border-2 border-asphalt shadow-brutal-sm">
-              <strong class="font-mono text-sm flex items-center gap-1.5 mb-2">
+              <strong class="font-mono text-sm flex items-center gap-1.5 mb-2" data-i18n="iphoneTitle">
                 FÖR iPHONE
               </strong>
-              <p class="text-neutral-700 mb-2 leading-relaxed">
-                Din iPhone har en inbyggd app som heter <strong>Genvägar</strong> (Shortcuts). Den kan ställas in för att väcka skärmen och visa tågen varje morgon.
+              <p class="text-neutral-700 mb-2 leading-relaxed" data-i18n-html="iphoneDesc">
+                Din iPhone har en inbyggd app som heter <strong>Genvägar</strong> (Shortcuts). Den kan ställas in för
+                att väcka skärmen och visa tågen varje morgon.
               </p>
               <ol class="list-decimal pl-4 space-y-1.5 text-neutral-800 font-medium">
-                <li>Leta upp och öppna appen <strong>Genvägar</strong> på din hemskärm.</li>
-                <li>Längst ner på skärmen trycker du på fliken <strong>Automatisering</strong>.</li>
-                <li>Tryck på plustecknet uppe i hörnet (eller "Skapa personlig automatisering").</li>
-                <li>Välj alternativet <strong>Tid på dagen</strong>.</li>
-                <li>Ställ in klockan på <span class="font-mono bg-paperDark px-1">06:50</span>. Välj att den ska köras "Vardagar". Bocka även i "Kör omedelbart" så att du inte behöver godkänna den varje morgon.</li>
-                <li>Tryck på Nästa och välj <strong>Ny tom automatisering</strong>.</li>
-                <li>Tryck på knappen <strong>Lägg till åtgärd</strong>. Sök efter "Visa notis" i sökfältet och välj den. Skriv in texten: "Dags att kolla tåget!".</li>
-                <li>Sök efter en till åtgärd som heter "Öppna URL" (eller Öppna webbsida).</li>
-                <li>Kopiera adressen till den här sidan i din webbläsare och klistra in den i URL-rutan.</li>
-                <li>Tryck på Klar! Nu kommer din telefon plinga kl 06:50 varje morgon och ett tryck på notisen öppnar tågtiderna.</li>
+                <li data-i18n-html="iphoneStep1">Leta upp och öppna appen <strong>Genvägar</strong> på din hemskärm.</li>
+                <li data-i18n-html="iphoneStep2">Längst ner på skärmen trycker du på fliken <strong>Automatisering</strong>.</li>
+                <li data-i18n-html="iphoneStep3">Tryck på plustecknet uppe i hörnet (eller "Skapa personlig automatisering").</li>
+                <li data-i18n-html="iphoneStep4">Välj alternativet <strong>Tid på dagen</strong>.</li>
+                <li data-i18n-html="iphoneStep5">Ställ in klockan på <span class="font-mono bg-paperDark px-1">06:50</span>. Välj att den ska köras
+                  "Vardagar". Bocka även i "Kör omedelbart" så att du inte behöver godkänna den varje morgon.</li>
+                <li data-i18n-html="iphoneStep6">Tryck på Nästa och välj <strong>Ny tom automatisering</strong>.</li>
+                <li data-i18n-html="iphoneStep7">Tryck på knappen <strong>Lägg till åtgärd</strong>. Sök efter "Visa notis" i sökfältet och välj den.
+                  Skriv in texten: "Dags att kolla tåget!".</li>
+                <li data-i18n-html="iphoneStep8">Sök efter en till åtgärd som heter "Öppna URL" (eller Öppna webbsida).</li>
+                <li data-i18n-html="iphoneStep9">Kopiera adressen till den här sidan i din webbläsare och klistra in den i URL-rutan.</li>
+                <li data-i18n-html="iphoneStep10">Tryck på Klar! Nu kommer din telefon plinga kl 06:50 varje morgon och ett tryck på notisen öppnar
+                  tågtiderna.</li>
               </ol>
             </div>
 
             <!-- Android / Universal -->
             <div class="p-3 bg-paper border-2 border-asphalt shadow-brutal-sm">
-              <strong class="font-mono text-sm flex items-center gap-1.5 mb-2">
+              <strong class="font-mono text-sm flex items-center gap-1.5 mb-2" data-i18n="androidTitle">
                 FÖR ANDROID
               </strong>
-              <p class="text-neutral-700 mb-2 leading-relaxed">
+              <p class="text-neutral-700 mb-2 leading-relaxed" data-i18n-html="androidDesc">
                 På Android-telefoner är det enklast att ladda ner en gratis app som kan schemalägga händelser åt dig.
               </p>
               <ol class="list-decimal pl-4 space-y-1.5 text-neutral-800 font-medium">
-                <li>Gå in i Google Play Butik och ladda ner en gratis app som heter <strong>MacroDroid</strong>.</li>
-                <li>Öppna appen och tryck på <strong>Lägg till makro</strong>.</li>
-                <li>Tryck på plustecknet vid den röda rubriken <strong>Utlösare</strong>. Välj "Dag/Tid Trigger" och ställ in klockan på <span class="font-mono bg-paperDark px-1">06:50</span> (endast vardagar).</li>
-                <li>Tryck på plustecknet vid den blå rubriken <strong>Åtgärder</strong>. Välj "Visa notifikation" och skriv "Kolla tågen!".</li>
-                <li>Lägg till ytterligare en åtgärd under den blå rubriken: Sök efter "Öppna webbplats" (Open Website).</li>
-                <li>Kopiera adressen till den här sidan i din webbläsare och klistra in den.</li>
-                <li>Längst upp skriver du ett namn på makrot (t.ex. "Morgontåg") och sparar. Nu är det färdigt!</li>
+                <li data-i18n-html="androidStep1">Gå in i Google Play Butik och ladda ner en gratis app som heter <strong>MacroDroid</strong>.</li>
+                <li data-i18n-html="androidStep2">Öppna appen och tryck på <strong>Lägg till makro</strong>.</li>
+                <li data-i18n-html="androidStep3">Tryck på plustecknet vid den röda rubriken <strong>Utlösare</strong>. Välj "Dag/Tid Trigger" och
+                  ställ in klockan på <span class="font-mono bg-paperDark px-1">06:50</span> (endast vardagar).</li>
+                <li data-i18n-html="androidStep4">Tryck på plustecknet vid den blå rubriken <strong>Åtgärder</strong>. Välj "Visa notifikation" och
+                  skriv "Kolla tågen!".</li>
+                <li data-i18n-html="androidStep5">Lägg till ytterligare en åtgärd under den blå rubriken: Sök efter "Öppna webbplats" (Open Website).
+                </li>
+                <li data-i18n-html="androidStep6">Kopiera adressen till den här sidan i din webbläsare och klistra in den.</li>
+                <li data-i18n-html="androidStep7">Längst upp skriver du ett namn på makrot (t.ex. "Morgontåg") och sparar. Nu är det färdigt!</li>
               </ol>
             </div>
           </div>
@@ -346,37 +412,269 @@
     </main>
 
     <!-- TOAST / MEDDELANDEREMSA -->
-    <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 max-w-[420px] w-[92%] pointer-events-none opacity-0 -translate-y-3 transition-all duration-200">
-      <div class="bg-asphalt text-signalYellow border-2 border-signalYellow px-3.5 py-2.5 shadow-brutal font-mono text-xs font-bold flex items-center gap-2">
+    <div id="toast"
+      class="fixed top-16 left-1/2 -translate-x-1/2 z-50 max-w-[420px] w-[92%] pointer-events-none opacity-0 -translate-y-3 transition-all duration-200">
+      <div
+        class="bg-asphalt text-signalYellow border-2 border-signalYellow px-3.5 py-2.5 shadow-brutal font-mono text-xs font-bold flex items-center gap-2">
         <span id="toastIcon">!</span>
-        <span id="toastMessage" class="flex-1 text-paper">Uppdaterad</span>
+        <span id="toastMessage" class="flex-1 text-paper" data-i18n="toastUpdated">Uppdaterad</span>
       </div>
     </div>
 
     <!-- FAST BOTTENMENY (3 FLIKAR I BRUTALISTISK BILJETTSTIL) -->
-    <nav class="absolute bottom-0 left-0 right-0 z-40 bg-asphalt border-t-2 border-asphalt grid grid-cols-3 font-mono text-[10px] font-bold uppercase">
-      <button onclick="app.switchTab('morning')" id="tabBtn-morning" class="py-3 flex flex-col items-center justify-center bg-signalYellow text-asphalt border-r border-neutral-800">
+    <nav
+      class="absolute bottom-0 left-0 right-0 z-40 bg-asphalt border-t-2 border-asphalt grid grid-cols-3 font-mono text-[10px] font-bold uppercase">
+      <button onclick="app.switchTab('morning')" id="tabBtn-morning"
+        class="py-3 flex flex-col items-center justify-center bg-signalYellow text-asphalt border-r border-neutral-800 font-extrabold">
         <span class="text-sm leading-none mb-1">▤</span>
-        <span>Morgonkoll</span>
+        <span data-i18n="tabMorning">Morgonkoll</span>
       </button>
-      <button onclick="app.switchTab('evidence')" id="tabBtn-evidence" class="py-3 flex flex-col items-center justify-center text-neutral-300 hover:text-white border-r border-neutral-800">
+      <button onclick="app.switchTab('evidence')" id="tabBtn-evidence"
+        class="py-3 flex flex-col items-center justify-center text-neutral-300 hover:text-white border-r border-neutral-800">
         <span class="text-sm leading-none mb-1">§</span>
-        <span>Bevis/Krav</span>
+        <span data-i18n="tabEvidence">Bevis/Krav</span>
       </button>
-      <button onclick="app.switchTab('alerts')" id="tabBtn-alerts" class="py-3 flex flex-col items-center justify-center text-neutral-300 hover:text-white">
+      <button onclick="app.switchTab('alerts')" id="tabBtn-alerts"
+        class="py-3 flex flex-col items-center justify-center text-neutral-300 hover:text-white">
         <span class="text-sm leading-none mb-1">!</span>
-        <span>Notiser</span>
+        <span data-i18n="tabAlerts">Notiser</span>
       </button>
     </nav>
 
   </div>
 
-  <!-- APPLIKATIONSLOGIK -->
+  <!-- APPLIKATIONSLOGIK MED FULL I18N (SVENSKA & ENGELSKA) -->
   <script>
     const DEFAULT_TRAFIKVERKET_API_KEY = 'f825361ca8a44670a1df1779f3f97852';
 
+    const translations = {
+      sv: {
+        pageTitle: "AVGÅNG // Uppsala C ➔ Stockholm C",
+        trackLabel: "SPÅR / U➔CST",
+        statusNotConnected: "EJ ANSLUTEN",
+        statusLive: "LIVE TRAFIKVERKET",
+        statusError: "FEL VID ANSLUTNING",
+        syncBtn: "↻ SYNK",
+        syncingBtn: "⏳ SYNKAR...",
+        syncedBtn: "✓ SYNKAD",
+        morningRoute: "Morgonsträcka",
+        switchDirection: "Vänd sträcka ⇄",
+        filterAll: "Alla tåg idag",
+        filterWindow: "07:00–08:30",
+        filterDelayed: "Försenade",
+        notSyncedYet: "Ej synkad än",
+        syncedAt: "Synkad kl {time}",
+        heroTag: "★ MITT PENDELTÅG",
+        heroCountdown: "LIVE STATUS",
+        heroTrainNoLabel: "Tågnummer & Destination",
+        heroNoTrain: "INGET TÅG VALT",
+        heroSelectFromList: "VÄLJ TÅG I LISTAN",
+        heroWaitingSync: "VÄNTAR PÅ SYNK",
+        heroWaitingSelection: "VÄNTAR PÅ VAL",
+        heroEnterKey: "ANGE API-NYCKEL",
+        heroDepTime: "Avgångstid",
+        heroTrack: "Spår",
+        heroEstArr: "Ber. Ank",
+        heroWaitingData: "Väntar på data...",
+        heroClickDeparture: "Klicka på en avgång i listan nedan för att se detaljer.",
+        heroTrafikverketReport: "Trafikverkets rapport:",
+        heroSaveEvidence: "+ SPARA BEVIS FÖR ERSÄTTNING",
+        heroClickBelow: "Klicka på tåg nedan för att välja",
+        heroTo: "mot",
+        heroCancelled: "INSTÄLLT",
+        heroOnTime: "I TID",
+        heroMinLate: "+{min} MIN SEN",
+        heroEligibleDelay: "! ≥20 min: Rätt till förseningsersättning!",
+        heroEligibleComp: "Berättigar till resegaranti / ersättning",
+        heroEstArrivalNew: "Beräknad ny ankomsttid",
+        heroArrivesOnTime: "Ankommer i tid",
+        departuresTitle: "Avgångar från Trafikverket (Klicka för att välja)",
+        trainsCount: "{count} TÅG",
+        thDepArr: "Avg/Ank",
+        thTrainOp: "Tåg / Operatör",
+        thTrack: "Spår",
+        thStatus: "Status",
+        noTrainsFilter: "Inga tåg matchar det valda filtret just nu. Tryck på \"Alla tåg idag\" eller ↻ SYNK.",
+        loadingTrainData: "Laddar tågdata...",
+        arrPrefix: "Ank",
+        trainPrefix: "Tåg",
+        evidenceLogBadge: "RESEGARANTI-LOGG",
+        evidenceTitle: "Bevis & Ersättningskrav",
+        evidenceCountUnit: "st",
+        savedTrainsLabel: "sparade tåg",
+        evidenceDesc: "När tåget blir minst <strong>20 minuter försenat</strong> på sträckan Uppsala–Stockholm har du rätt till resegaranti (50–100 % av biljettpriset eller ersättning för utlägg/taxi vid SL/Mälartåg/SJ). Här sparas tidsstämplad live-data från Trafikverket för dina tåg.",
+        copyReportBtn: "KOPIERA FÄRDIGT ERSÄTTNINGSKRAV",
+        claimAt: "Ansök hos",
+        openForm: "Öppna formulär",
+        emptyEvidence: "Inga tåg sparade ännu. Klicka på \"+ SPARA BEVIS\" på startsidan.",
+        deleteEvidence: "TA BORT ✕",
+        thScheduled: "Ordinarie",
+        thActualNew: "Faktisk/Ny",
+        thDeviation: "Avvikelse",
+        statusCancelled: "Inställt",
+        loggedAtPrefix: "Loggad kl",
+        reasonPrefix: "Orsak",
+        tier100: "100 % ersättning (eller Taxi)",
+        tier75: "75 % ersättning av biljett",
+        tier50: "50 % ersättning av biljett",
+        tierNone: "Under 20 min (Ingen resegaranti)",
+        alertsQTitle: "Kan jag få en notis varje morgon för alla tåg kl. 07:00–08:30?",
+        alertsQBadge: "SVAR PÅ DIN FRÅGA: JA! SÅ HÄR GÖR DU",
+        alertsQDesc: "Telefoner stänger ofta ner webbsidor i bakgrunden för att spara batteri. Det allra enklaste (och helt gratis) sättet att lösa detta utan att kunna koda, är att be telefonen skicka en påminnelse till dig varje morgon och automatiskt öppna upp den här webbappen. Följ den enkla guiden nedan!",
+        alertsGuideTitle: "Automatisk Morgonnotis (06:50)",
+        iphoneTitle: "FÖR iPHONE",
+        iphoneDesc: "Din iPhone har en inbyggd app som heter <strong>Genvägar</strong> (Shortcuts). Den kan ställas in för att väcka skärmen och visa tågen varje morgon.",
+        iphoneStep1: "Leta upp och öppna appen <strong>Genvägar</strong> på din hemskärm.",
+        iphoneStep2: "Längst ner på skärmen trycker du på fliken <strong>Automatisering</strong>.",
+        iphoneStep3: "Tryck på plustecknet uppe i hörnet (eller \"Skapa personlig automatisering\").",
+        iphoneStep4: "Välj alternativet <strong>Tid på dagen</strong>.",
+        iphoneStep5: "Ställ in klockan på <span class=\"font-mono bg-paperDark px-1\">06:50</span>. Välj att den ska köras \"Vardagar\". Bocka även i \"Kör omedelbart\" så att du inte behöver godkänna den varje morgon.",
+        iphoneStep6: "Tryck på Nästa och välj <strong>Ny tom automatisering</strong>.",
+        iphoneStep7: "Tryck på knappen <strong>Lägg till åtgärd</strong>. Sök efter \"Visa notis\" i sökfältet och välj den. Skriv in texten: \"Dags att kolla tåget!\".",
+        iphoneStep8: "Sök efter en till åtgärd som heter \"Öppna URL\" (eller Öppna webbsida).",
+        iphoneStep9: "Kopiera adressen till den här sidan i din webbläsare och klistra in den i URL-rutan.",
+        iphoneStep10: "Tryck på Klar! Nu kommer din telefon plinga kl 06:50 varje morgon och ett tryck på notisen öppnar tågtiderna.",
+        androidTitle: "FÖR ANDROID",
+        androidDesc: "På Android-telefoner är det enklast att ladda ner en gratis app som kan schemalägga händelser åt dig.",
+        androidStep1: "Gå in i Google Play Butik och ladda ner en gratis app som heter <strong>MacroDroid</strong>.",
+        androidStep2: "Öppna appen och tryck på <strong>Lägg till makro</strong>.",
+        androidStep3: "Tryck på plustecknet vid den röda rubriken <strong>Utlösare</strong>. Välj \"Dag/Tid Trigger\" och ställ in klockan på <span class=\"font-mono bg-paperDark px-1\">06:50</span> (endast vardagar).",
+        androidStep4: "Tryck på plustecknet vid den blå rubriken <strong>Åtgärder</strong>. Välj \"Visa notifikation\" och skriv \"Kolla tågen!\".",
+        androidStep5: "Lägg till ytterligare en åtgärd under den blå rubriken: Sök efter \"Öppna webbplats\" (Open Website).",
+        androidStep6: "Kopiera adressen till den här sidan i din webbläsare och klistra in den.",
+        androidStep7: "Längst upp skriver du ett namn på makrot (t.ex. \"Morgontåg\") och sparar. Nu är det färdigt!",
+        tabMorning: "Morgonkoll",
+        tabEvidence: "Bevis/Krav",
+        tabAlerts: "Notiser",
+        toastUpdated: "Uppdaterad",
+        toastNoKey: "Ingen API-nyckel hittades. Det krävs för att hämta data.",
+        toastSyncing: "Synkroniserar live-data med Trafikverket...",
+        toastSyncSuccess: "Synkroniserad kl {time}! Hämtade {count} tåg från Trafikverket.",
+        toastSyncFail: "Kunde inte synka: {err}. Kontrollera uppkoppling.",
+        toastTrainSelected: "Valt pendlartåg: {op} {no} ({time})",
+        toastEvidenceLogged: "Tåg {no} sparat som tidsstämplat bevis!",
+        toastSaveFirst: "Synkronisera och välj ett riktigt tåg först!",
+        toastSaveAtLeastOne: "Spara minst ett tåg först!",
+        toastCopied: "Färdigt ersättningskrav kopierat till urklipp!",
+        toastCopyFail: "Kunde inte kopiera automatiskt",
+        toastLangSwitched: "Språk ändrat till Svenska 🇸🇪"
+      },
+      en: {
+        pageTitle: "DEPARTURES // Uppsala C ➔ Stockholm C",
+        trackLabel: "TRACK / U➔CST",
+        statusNotConnected: "NOT CONNECTED",
+        statusLive: "LIVE TRAFIKVERKET",
+        statusError: "CONNECTION ERROR",
+        syncBtn: "↻ SYNC",
+        syncingBtn: "⏳ SYNCING...",
+        syncedBtn: "✓ SYNCED",
+        morningRoute: "Morning route",
+        switchDirection: "Switch direction ⇄",
+        filterAll: "All trains today",
+        filterWindow: "07:00–08:30",
+        filterDelayed: "Delayed",
+        notSyncedYet: "Not synced yet",
+        syncedAt: "Synced at {time}",
+        heroTag: "★ MY COMMUTER TRAIN",
+        heroCountdown: "LIVE STATUS",
+        heroTrainNoLabel: "Train number & Destination",
+        heroNoTrain: "NO TRAIN SELECTED",
+        heroSelectFromList: "SELECT TRAIN FROM LIST",
+        heroWaitingSync: "WAITING FOR SYNC",
+        heroWaitingSelection: "WAITING FOR SELECTION",
+        heroEnterKey: "ENTER API KEY",
+        heroDepTime: "Departure time",
+        heroTrack: "Track",
+        heroEstArr: "Est. Arr",
+        heroWaitingData: "Waiting for data...",
+        heroClickDeparture: "Click a departure in the list below to view details.",
+        heroTrafikverketReport: "Trafikverket report:",
+        heroSaveEvidence: "+ SAVE CLAIM EVIDENCE",
+        heroClickBelow: "Click a train below to select",
+        heroTo: "to",
+        heroCancelled: "CANCELLED",
+        heroOnTime: "ON TIME",
+        heroMinLate: "+{min} MIN LATE",
+        heroEligibleDelay: "! ≥20 min: Eligible for delay compensation!",
+        heroEligibleComp: "Eligible for travel guarantee refund",
+        heroEstArrivalNew: "Estimated new arrival time",
+        heroArrivesOnTime: "Arrives on time",
+        departuresTitle: "Departures from Trafikverket (Click to select)",
+        trainsCount: "{count} TRAINS",
+        thDepArr: "Dep/Arr",
+        thTrainOp: "Train / Operator",
+        thTrack: "Track",
+        thStatus: "Status",
+        noTrainsFilter: "No trains match the selected filter right now. Click \"All trains today\" or ↻ SYNC.",
+        loadingTrainData: "Loading train data...",
+        arrPrefix: "Arr",
+        trainPrefix: "Train",
+        evidenceLogBadge: "TRAVEL GUARANTEE LOG",
+        evidenceTitle: "Evidence & Compensation Claim",
+        evidenceCountUnit: "saved",
+        savedTrainsLabel: "saved trains",
+        evidenceDesc: "When your train is delayed by at least <strong>20 minutes</strong> on the Uppsala–Stockholm route, you are entitled to the travel guarantee (50–100% ticket refund or taxi/expense compensation from SL/Mälartåg/SJ). Timestamped live data from Trafikverket is saved here for your claims.",
+        copyReportBtn: "COPY CLAIM EVIDENCE REPORT",
+        claimAt: "Claim at",
+        openForm: "Open form",
+        emptyEvidence: "No trains saved yet. Click \"+ SAVE CLAIM EVIDENCE\" on the home screen.",
+        deleteEvidence: "DELETE ✕",
+        thScheduled: "Scheduled",
+        thActualNew: "Actual/New",
+        thDeviation: "Deviation",
+        statusCancelled: "Cancelled",
+        loggedAtPrefix: "Logged at",
+        reasonPrefix: "Reason",
+        tier100: "100% refund (or Taxi)",
+        tier75: "75% ticket refund",
+        tier50: "50% ticket refund",
+        tierNone: "Under 20 min (No travel guarantee)",
+        alertsQTitle: "Can I get a notification every morning for trains 07:00–08:30?",
+        alertsQBadge: "ANSWER TO YOUR QUESTION: YES! HERE IS HOW",
+        alertsQDesc: "Smartphones often put background web pages to sleep to save battery. The easiest (and completely free) way to handle this without coding is to have your phone send you a daily morning notification that opens this web app automatically. Follow the simple guide below!",
+        alertsGuideTitle: "Automatic Morning Notification (06:50)",
+        iphoneTitle: "FOR iPHONE",
+        iphoneDesc: "Your iPhone has a built-in app called <strong>Shortcuts</strong>. It can be set up to wake your screen and show train times every morning.",
+        iphoneStep1: "Find and open the <strong>Shortcuts</strong> app on your home screen.",
+        iphoneStep2: "At the bottom of the screen, tap the <strong>Automation</strong> tab.",
+        iphoneStep3: "Tap the plus sign in the top corner (or \"Create Personal Automation\").",
+        iphoneStep4: "Choose <strong>Time of Day</strong>.",
+        iphoneStep5: "Set the time to <span class=\"font-mono bg-paperDark px-1\">06:50</span>. Select \"Weekdays\". Also check \"Run Immediately\" so you don't have to confirm it each morning.",
+        iphoneStep6: "Tap Next and select <strong>New Blank Automation</strong>.",
+        iphoneStep7: "Tap <strong>Add Action</strong>. Search for \"Show Notification\" and select it. Enter text: \"Time to check the train!\".",
+        iphoneStep8: "Search for another action called \"Open URLs\" (or Open Webpage).",
+        iphoneStep9: "Copy the address of this web page from your browser and paste it into the URL field.",
+        iphoneStep10: "Tap Done! Your phone will now chime at 06:50 every weekday morning, and tapping the notification will open your train times.",
+        androidTitle: "FOR ANDROID",
+        androidDesc: "On Android phones, the simplest method is to download a free app that can schedule automated tasks for you.",
+        androidStep1: "Open the Google Play Store and download a free app called <strong>MacroDroid</strong>.",
+        androidStep2: "Open the app and tap <strong>Add Macro</strong>.",
+        androidStep3: "Tap the plus icon next to the red <strong>Triggers</strong> header. Choose \"Day/Time Trigger\" and set the time to <span class=\"font-mono bg-paperDark px-1\">06:50</span> (weekdays only).",
+        androidStep4: "Tap the plus icon next to the blue <strong>Actions</strong> header. Choose \"Notification\" > \"Display Notification\" and write \"Check train times!\".",
+        androidStep5: "Add another action under the blue Actions header: Search for \"Open Website\".",
+        androidStep6: "Copy the URL of this page from your browser and paste it in.",
+        androidStep7: "At the top, give the macro a name (e.g. \"Morning Train\") and save. You are all set!",
+        tabMorning: "Morning",
+        tabEvidence: "Evidence",
+        tabAlerts: "Alerts",
+        toastUpdated: "Updated",
+        toastNoKey: "No API key found. It is required to fetch data.",
+        toastSyncing: "Syncing live data with Trafikverket...",
+        toastSyncSuccess: "Synced at {time}! Fetched {count} trains from Trafikverket.",
+        toastSyncFail: "Could not sync: {err}. Check your connection.",
+        toastTrainSelected: "Selected commuter train: {op} {no} ({time})",
+        toastEvidenceLogged: "Train {no} saved as timestamped evidence!",
+        toastSaveFirst: "Sync and select a real train first!",
+        toastSaveAtLeastOne: "Save at least one train first!",
+        toastCopied: "Completed claim evidence report copied to clipboard!",
+        toastCopyFail: "Could not copy automatically",
+        toastLangSwitched: "Language switched to English 🇬🇧"
+      }
+    };
+
     const app = {
       state: {
+        lang: localStorage.getItem('mp_lang') || 'sv',
         activeTab: 'morning',
         filter: 'window', // 'all' (Alla tåg idag), 'window' (07:00-08:30), 'delayed'
         isConnected: false,
@@ -391,6 +689,79 @@
         evidenceLog: JSON.parse(localStorage.getItem('mp_evidence_log') || '[]')
       },
 
+      t(key, params = {}) {
+        let str = translations[this.state.lang]?.[key] || translations['sv']?.[key] || key;
+        for (const p in params) {
+          str = str.replace(new RegExp(`\\{${p}\\}`, 'g'), params[p]);
+        }
+        return str;
+      },
+
+      toggleLanguage() {
+        const nextLang = this.state.lang === 'sv' ? 'en' : 'sv';
+        this.setLanguage(nextLang);
+      },
+
+      setLanguage(lang) {
+        this.state.lang = lang;
+        localStorage.setItem('mp_lang', lang);
+        this.applyLanguage();
+        this.showToast(this.t('toastLangSwitched'), '🌐');
+      },
+
+      applyLanguage() {
+        const lang = this.state.lang;
+        const dict = translations[lang] || translations.sv;
+
+        document.documentElement.lang = lang;
+        document.title = dict.pageTitle;
+
+        // Uppdatera språkväxlarknapp / Update language switch button
+        const flagEl = document.getElementById('langFlag');
+        const codeEl = document.getElementById('langCode');
+        const btnEl = document.getElementById('langToggleBtn');
+        if (flagEl) flagEl.innerText = lang === 'sv' ? '🇸🇪' : '🇬🇧';
+        if (codeEl) codeEl.innerText = lang === 'sv' ? 'SV' : 'EN';
+        if (btnEl) btnEl.title = lang === 'sv' ? 'Switch to English 🇬🇧' : 'Växla till svenska 🇸🇪';
+
+        // Uppdatera statiska textelement med data-i18n
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const key = el.getAttribute('data-i18n');
+          if (dict[key]) {
+            el.innerText = dict[key];
+          }
+        });
+
+        // Uppdatera HTML-element med data-i18n-html
+        document.querySelectorAll('[data-i18n-html]').forEach(el => {
+          const key = el.getAttribute('data-i18n-html');
+          if (dict[key]) {
+            el.innerHTML = dict[key];
+          }
+        });
+
+        // Synk-knapp
+        const syncBtn = document.getElementById('syncBtn');
+        if (syncBtn && !syncBtn.disabled) {
+          syncBtn.innerText = dict.syncBtn;
+        }
+
+        // Tidsstämpel för synk
+        const syncLabel = document.getElementById('lastSyncTimeLabel');
+        if (syncLabel) {
+          if (this.state.lastSyncTime) {
+            syncLabel.innerText = this.t('syncedAt', { time: this.state.lastSyncTime });
+          } else {
+            syncLabel.innerText = dict.notSyncedYet;
+          }
+        }
+
+        this.updateStatusBadge();
+        this.updateHeaderRoute();
+        this.renderMorningView();
+        this.renderEvidenceList();
+      },
+
       init() {
         this.updateClock();
         setInterval(() => this.updateClock(), 1000);
@@ -403,6 +774,7 @@
         this.state.evidenceLog = this.state.evidenceLog.filter(e => e.id !== 'ev-init-1');
         localStorage.setItem('mp_evidence_log', JSON.stringify(this.state.evidenceLog));
 
+        this.applyLanguage();
         this.updateHeaderRoute();
         this.renderEvidenceList();
         this.refreshData(false);
@@ -474,10 +846,10 @@
       },
 
       buildXmlQuery(apiKey, fromSig, toSig) {
-        const fromLocNode = fromSig === 'Cst' 
-          ? '<OR><EQ name="LocationSignature" value="Cst" /><EQ name="LocationSignature" value="Sci" /></OR>' 
+        const fromLocNode = fromSig === 'Cst'
+          ? '<OR><EQ name="LocationSignature" value="Cst" /><EQ name="LocationSignature" value="Sci" /></OR>'
           : `<EQ name="LocationSignature" value="${fromSig}" />`;
-          
+
         const toLocNode = toSig === 'Cst'
           ? '<OR><EQ name="LocationSignature" value="Cst" /><EQ name="LocationSignature" value="Sci" /></OR>'
           : `<EQ name="LocationSignature" value="${toSig}" />`;
@@ -531,17 +903,17 @@
           this.updateStatusBadge();
           this.renderMorningView();
           if (isManualSync) {
-            this.showToast("Ingen API-nyckel hittades. Det krävs för att hämta data.", "!");
+            this.showToast(this.t('toastNoKey'), "!");
           }
           return;
         }
 
         if (syncBtn) {
-          syncBtn.innerText = "⏳ SYNKAR...";
+          syncBtn.innerText = this.t('syncingBtn');
           syncBtn.disabled = true;
         }
         if (isManualSync) {
-          this.showToast("Synkroniserar live-data med Trafikverket...", "!");
+          this.showToast(this.t('toastSyncing'), "!");
         }
 
         try {
@@ -551,7 +923,7 @@
           this.state.lastSyncTime = new Date().toTimeString().split(' ')[0];
 
           if (syncLabel) {
-            syncLabel.innerText = `Synkad kl ${this.state.lastSyncTime}`;
+            syncLabel.innerText = this.t('syncedAt', { time: this.state.lastSyncTime });
           }
 
           if (this.state.selectedTrainId) {
@@ -562,25 +934,25 @@
           }
 
           if (syncBtn) {
-            syncBtn.innerText = "✓ SYNKAD";
+            syncBtn.innerText = this.t('syncedBtn');
             syncBtn.className = "bg-signalGreen text-white border border-white/30 px-2 py-0.5 font-mono text-[10px] font-bold transition";
             setTimeout(() => {
-              syncBtn.innerText = "↻ SYNK";
-              syncBtn.className = "bg-asphaltLight hover:bg-neutral-700 text-paper border border-neutral-600 px-2 py-0.5 font-mono text-[10px] active:translate-y-0.5 transition";
+              syncBtn.innerText = this.t('syncBtn');
+              syncBtn.className = "bg-asphaltLight hover:bg-neutral-700 text-paper border border-neutral-600 px-2 py-0.5 font-mono text-[10px] active:translate-y-0.5 transition cursor-pointer";
               syncBtn.disabled = false;
             }, 2200);
           }
 
-          this.showToast(`Synkroniserad kl ${this.state.lastSyncTime}! Hämtade ${liveData.length} tåg från Trafikverket.`, "!");
+          this.showToast(this.t('toastSyncSuccess', { time: this.state.lastSyncTime, count: liveData.length }), "!");
         } catch (e) {
           console.error("API-fel vid anrop mot Trafikverket:", e);
           this.state.departures = [];
           this.state.isConnected = false;
           if (syncBtn) {
-            syncBtn.innerText = "↻ SYNK";
+            syncBtn.innerText = this.t('syncBtn');
             syncBtn.disabled = false;
           }
-          this.showToast(`Kunde inte synka: ${e.message}. Kontrollera uppkoppling.`, "!");
+          this.showToast(this.t('toastSyncFail', { err: e.message }), "!");
         }
 
         this.updateStatusBadge();
@@ -589,12 +961,13 @@
 
       updateStatusBadge() {
         const badge = document.getElementById('liveStatusBadge');
+        if (!badge) return;
         if (this.state.isConnected) {
           badge.className = "font-mono text-[10px] uppercase px-1.5 py-0.5 bg-signalGreen text-white font-bold";
-          badge.innerText = "LIVE TRAFIKVERKET";
+          badge.innerText = this.t('statusLive');
         } else {
           badge.className = "font-mono text-[10px] uppercase px-1.5 py-0.5 border border-signalYellow text-signalYellow";
-          badge.innerText = "FEL VID ANSLUTNING";
+          badge.innerText = this.state.lastSyncTime ? this.t('statusError') : this.t('statusNotConnected');
         }
       },
 
@@ -621,7 +994,7 @@
 
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const json = await response.json();
-        
+
         const itemsDep = json?.RESPONSE?.RESULT?.[0]?.TrainAnnouncement || [];
         const itemsArr = json?.RESPONSE?.RESULT?.[1]?.TrainAnnouncement || [];
 
@@ -630,18 +1003,18 @@
 
         const arrivalMap = {};
         itemsArr.forEach(item => {
-           const adv = new Date(item.AdvertisedTimeAtLocation);
-           const est = item.EstimatedTimeAtLocation ? new Date(item.EstimatedTimeAtLocation) : null;
-           const act = item.TimeAtLocation ? new Date(item.TimeAtLocation) : null;
-           const refTime = act || est;
-           const delay = refTime ? Math.max(0, Math.round((refTime - adv) / 60000)) : 0;
+          const adv = new Date(item.AdvertisedTimeAtLocation);
+          const est = item.EstimatedTimeAtLocation ? new Date(item.EstimatedTimeAtLocation) : null;
+          const act = item.TimeAtLocation ? new Date(item.TimeAtLocation) : null;
+          const refTime = act || est;
+          const delay = refTime ? Math.max(0, Math.round((refTime - adv) / 60000)) : 0;
 
-           arrivalMap[item.AdvertisedTrainIdent] = {
-               advertisedArrival: parseTime(adv),
-               estimatedArrival: refTime && delay > 0 ? parseTime(refTime) : null,
-               arrivalDelay: delay,
-               arrivalCanceled: !!item.Canceled
-           };
+          arrivalMap[item.AdvertisedTrainIdent] = {
+            advertisedArrival: parseTime(adv),
+            estimatedArrival: refTime && delay > 0 ? parseTime(refTime) : null,
+            arrivalDelay: delay,
+            arrivalCanceled: !!item.Canceled
+          };
         });
 
         return itemsDep.map((item, idx) => {
@@ -659,17 +1032,17 @@
           const owner = item.InformationOwner || '';
           let operatorLabel = prodDesc || owner || 'Persontåg';
 
-          // Byt namn på SL till SL-Pendeln
+          // Operatörsnamn ändras inte (t.ex. SL-Pendeln, Mälartåg, SJ)
           if (operatorLabel.trim().toUpperCase() === 'SL') {
             operatorLabel = 'SL-Pendeln';
           }
 
           const arrInfo = arrivalMap[item.AdvertisedTrainIdent] || {};
-          
+
           let fallbackArrStr = '';
           if (!arrInfo.advertisedArrival) {
-             const arrTot = adv.getHours() * 60 + adv.getMinutes() + 38;
-             fallbackArrStr = `${pad(Math.floor(arrTot / 60) % 24)}:${pad(arrTot % 60)}`;
+            const arrTot = adv.getHours() * 60 + adv.getMinutes() + 38;
+            fallbackArrStr = `${pad(Math.floor(arrTot / 60) % 24)}:${pad(arrTot % 60)}`;
           }
 
           return {
@@ -683,7 +1056,7 @@
             isCanceled: !!item.Canceled,
             deviation: dev,
             inMorningWindow: advStr >= '07:00' && advStr <= '08:30',
-            
+
             advertisedArrival: arrInfo.advertisedArrival || fallbackArrStr,
             estimatedArrival: arrInfo.estimatedArrival || null,
             arrivalDelay: arrInfo.arrivalDelay || 0,
@@ -703,7 +1076,7 @@
           this.state.favTrainNo = t.trainNo;
           localStorage.setItem('mp_fav_train', t.trainNo);
           this.renderMorningView();
-          this.showToast(`Valt pendlartåg: ${t.operator} ${t.trainNo} (${t.advertisedTime})`, '!');
+          this.showToast(this.t('toastTrainSelected', { op: t.operator, no: t.trainNo, time: t.advertisedTime }), '!');
         }
       },
 
@@ -712,8 +1085,8 @@
         const destName = this.state.toSig.toUpperCase() === 'CST' ? 'Stockholm C/City' : (this.state.toSig.toUpperCase() === 'U' ? 'Uppsala C' : this.state.toSig.toUpperCase());
 
         if (!hero) {
-          document.getElementById('heroOperator').innerText = "VÄLJ TÅG I LISTAN";
-          document.getElementById('heroTrainNo').innerText = "INGET VALT TÅG";
+          document.getElementById('heroOperator').innerText = this.t('heroSelectFromList');
+          document.getElementById('heroTrainNo').innerText = this.t('heroNoTrain');
           document.getElementById('heroDest').innerText = "";
           document.getElementById('heroAdvTime').innerText = "--:--";
           document.getElementById('heroAdvTime').className = "font-mono text-3xl font-extrabold text-white tracking-tighter";
@@ -721,22 +1094,22 @@
           document.getElementById('heroTrack').innerText = "-";
           document.getElementById('heroArrival').innerText = "--:--";
           document.getElementById('heroStatusBadge').className = "px-2.5 py-1 font-mono text-xs font-extrabold uppercase bg-neutral-700 text-white";
-          
+
           if (!this.state.apiKey) {
-            document.getElementById('heroStatusBadge').innerText = "ANGE API-NYCKEL";
+            document.getElementById('heroStatusBadge').innerText = this.t('heroEnterKey');
             document.getElementById('heroDelayNote').className = "text-[10px] font-mono text-neutral-400 mt-1";
-            document.getElementById('heroDelayNote').innerText = "Väntar på data...";
+            document.getElementById('heroDelayNote').innerText = this.t('heroWaitingData');
           } else {
-            document.getElementById('heroStatusBadge').innerText = "VÄNTAR PÅ VAL";
+            document.getElementById('heroStatusBadge').innerText = this.t('heroWaitingSelection');
             document.getElementById('heroDelayNote').className = "text-[10px] font-mono text-signalYellow mt-1";
-            document.getElementById('heroDelayNote').innerText = "Klicka på en avgång i listan nedan för att se detaljer.";
+            document.getElementById('heroDelayNote').innerText = this.t('heroClickDeparture');
           }
-          
+
           document.getElementById('heroDeviationBanner').classList.add('hidden');
         } else {
           document.getElementById('heroOperator').innerText = hero.operator;
-          document.getElementById('heroTrainNo').innerText = `TÅG ${hero.trainNo}`;
-          document.getElementById('heroDest').innerText = `mot ${destName}`;
+          document.getElementById('heroTrainNo').innerText = `${this.t('trainPrefix').toUpperCase()} ${hero.trainNo}`;
+          document.getElementById('heroDest').innerText = `${this.t('heroTo')} ${destName}`;
           document.getElementById('heroTrack').innerText = hero.track;
 
           const advEl = document.getElementById('heroAdvTime');
@@ -754,11 +1127,11 @@
             advEl.innerText = hero.advertisedTime;
             estEl.classList.remove('hidden');
             estEl.className = "font-mono text-xl font-extrabold text-signalRed";
-            estEl.innerText = "INSTÄLLT";
+            estEl.innerText = this.t('heroCancelled');
             statusBadge.className = "px-2.5 py-1 font-mono text-xs font-extrabold uppercase bg-signalRed text-white";
-            statusBadge.innerText = "INSTÄLLT";
+            statusBadge.innerText = this.t('heroCancelled');
             delayNote.className = "text-[10px] font-mono text-red-400 mt-1";
-            delayNote.innerText = "Berättigar till resegaranti / ersättning";
+            delayNote.innerText = this.t('heroEligibleComp');
             arrBox.innerHTML = `<span class="line-through text-neutral-500 text-sm">${hero.advertisedArrival}</span>`;
           } else {
             if (hero.delayMinutes > 0) {
@@ -772,23 +1145,23 @@
               advEl.innerText = hero.advertisedTime;
               estEl.classList.add('hidden');
             }
-            
+
             if (hero.arrivalDelay > 0 && hero.estimatedArrival) {
-               arrBox.innerHTML = `<div class="leading-tight"><span class="line-through text-neutral-500 text-[11px] block">${hero.advertisedArrival}</span><span class="text-signalRed text-base font-extrabold block">${hero.estimatedArrival}</span></div>`;
+              arrBox.innerHTML = `<div class="leading-tight"><span class="line-through text-neutral-500 text-[11px] block">${hero.advertisedArrival}</span><span class="text-signalRed text-base font-extrabold block">${hero.estimatedArrival}</span></div>`;
             } else {
-               arrBox.innerHTML = hero.advertisedArrival;
+              arrBox.innerHTML = hero.advertisedArrival;
             }
 
             if (hero.arrivalDelay > 0) {
               statusBadge.className = "px-2.5 py-1 font-mono text-xs font-extrabold uppercase bg-signalRed text-white";
-              statusBadge.innerText = `+${hero.arrivalDelay} MIN SEN`;
+              statusBadge.innerText = this.t('heroMinLate', { min: hero.arrivalDelay });
               delayNote.className = "text-[10px] font-mono text-signalYellow mt-1";
-              delayNote.innerText = hero.arrivalDelay >= 20 ? "! ≥20 min: Rätt till förseningsersättning!" : "Beräknad ny ankomsttid";
+              delayNote.innerText = hero.arrivalDelay >= 20 ? this.t('heroEligibleDelay') : this.t('heroEstArrivalNew');
             } else {
               statusBadge.className = "px-2.5 py-1 font-mono text-xs font-extrabold uppercase bg-signalGreen text-white";
-              statusBadge.innerText = "I TID";
+              statusBadge.innerText = this.t('heroOnTime');
               delayNote.className = "text-[10px] font-mono text-emerald-400 mt-1";
-              delayNote.innerText = "Ankommer i tid";
+              delayNote.innerText = this.t('heroArrivesOnTime');
             }
           }
 
@@ -807,21 +1180,21 @@
           list = list.filter(d => d.delayMinutes > 0 || d.arrivalDelay > 0 || d.isCanceled || d.arrivalCanceled);
         }
 
-        document.getElementById('trainCountLabel').innerText = `${list.length} TÅG`;
+        document.getElementById('trainCountLabel').innerText = this.t('trainsCount', { count: list.length });
         const tbody = document.getElementById('departuresTableBody');
         tbody.innerHTML = '';
 
         if (!this.state.apiKey) {
           tbody.innerHTML = `
             <div class="p-6 text-center space-y-2">
-              <div class="font-mono text-xs font-bold text-asphalt">Laddar tågdata...</div>
+              <div class="font-mono text-xs font-bold text-asphalt">${this.t('loadingTrainData')}</div>
             </div>
           `;
           return;
         }
 
         if (list.length === 0) {
-          tbody.innerHTML = `<div class="p-6 text-center font-mono text-xs text-neutral-500">Inga tåg matchar det valda filtret just nu. Tryck på "Alla tåg idag" eller ↻ SYNK.</div>`;
+          tbody.innerHTML = `<div class="p-6 text-center font-mono text-xs text-neutral-500">${this.t('noTrainsFilter')}</div>`;
           return;
         }
 
@@ -829,9 +1202,8 @@
           const isSelected = hero && train.id === hero.id;
           const row = document.createElement('div');
           row.onclick = () => this.selectTrain(train.id);
-          row.className = `grid grid-cols-12 items-center px-3 py-2.5 cursor-pointer transition ${
-            isSelected ? 'bg-signalYellow/30 font-bold border-l-4 border-asphalt' : 'hover:bg-paperDark/60'
-          }`;
+          row.className = `grid grid-cols-12 items-center px-3 py-2.5 cursor-pointer transition ${isSelected ? 'bg-signalYellow/30 font-bold border-l-4 border-asphalt' : 'hover:bg-paperDark/60'
+            }`;
 
           const advArr = train.advertisedArrival;
           const isTotalCanceled = train.isCanceled || train.arrivalCanceled;
@@ -842,17 +1214,17 @@
             timeCell = `
               <div class="leading-tight opacity-60">
                 <span class="font-mono text-[13px] font-extrabold text-asphalt line-through block">${train.advertisedTime}</span>
-                <span class="font-mono text-[9px] text-neutral-500 line-through block">➔ Ank ${advArr}</span>
+                <span class="font-mono text-[9px] text-neutral-500 line-through block">➔ ${this.t('arrPrefix')} ${advArr}</span>
               </div>
             `;
           } else {
-            const depHtml = (train.delayMinutes > 0) 
+            const depHtml = (train.delayMinutes > 0)
               ? `<div class="flex items-center gap-1"><span class="font-mono text-[11px] text-neutral-400 line-through">${train.advertisedTime}</span><span class="font-mono text-[13px] font-extrabold text-signalRed">${train.estimatedTime}</span></div>`
               : `<span class="font-mono text-[13px] font-extrabold text-asphalt block">${train.advertisedTime}</span>`;
-              
+
             const arrHtml = (train.arrivalDelay > 0)
-              ? `<div class="flex items-center gap-1"><span class="font-mono text-[9px] text-neutral-400 line-through">Ank ${advArr}</span><span class="font-mono text-[9px] text-signalRed">Ank ${train.estimatedArrival}</span></div>`
-              : `<span class="font-mono text-[9px] text-neutral-500 block">➔ Ank ${advArr}</span>`;
+              ? `<div class="flex items-center gap-1"><span class="font-mono text-[9px] text-neutral-400 line-through">${this.t('arrPrefix')} ${advArr}</span><span class="font-mono text-[9px] text-signalRed">${this.t('arrPrefix')} ${train.estimatedArrival}</span></div>`
+              : `<span class="font-mono text-[9px] text-neutral-500 block">➔ ${this.t('arrPrefix')} ${advArr}</span>`;
 
             timeCell = `
               <div class="leading-tight">
@@ -862,9 +1234,9 @@
             `;
           }
 
-          let statusCell = `<span class="inline-block font-mono text-[10px] font-bold px-1.5 py-0.5 bg-emerald-100 text-signalGreen border border-signalGreen">I TID</span>`;
+          let statusCell = `<span class="inline-block font-mono text-[10px] font-bold px-1.5 py-0.5 bg-emerald-100 text-signalGreen border border-signalGreen">${this.t('heroOnTime')}</span>`;
           if (isTotalCanceled) {
-            statusCell = `<span class="inline-block font-mono text-[10px] font-bold px-1.5 py-0.5 bg-signalRed text-white">INSTÄLLT</span>`;
+            statusCell = `<span class="inline-block font-mono text-[10px] font-bold px-1.5 py-0.5 bg-signalRed text-white">${this.t('heroCancelled')}</span>`;
           } else if (train.arrivalDelay > 0) {
             statusCell = `<span class="inline-block font-mono text-[10px] font-bold px-1.5 py-0.5 bg-amber-200 text-asphalt border border-asphalt">+${train.arrivalDelay}m</span>`;
           }
@@ -876,7 +1248,7 @@
                 ${isSelected ? '<span>*</span>' : ''}
                 <span class="truncate">${train.operator}</span>
               </div>
-              <div class="font-mono text-[10px] text-neutral-600">Tåg ${train.trainNo} ${train.deviation ? '• !' : ''}</div>
+              <div class="font-mono text-[10px] text-neutral-600">${this.t('trainPrefix')} ${train.trainNo} ${train.deviation ? '• !' : ''}</div>
             </div>
             <div class="col-span-2 text-center">
               <span class="font-mono text-xs font-extrabold bg-asphalt text-signalYellow px-1.5 py-0.5">${train.track}</span>
@@ -889,26 +1261,30 @@
 
       calculateCompensationTier(delayMinutes, isCanceled) {
         if (isCanceled || delayMinutes >= 60) {
-          return { percent: '100 % ersättning (eller Taxi)', color: 'bg-signalRed text-white' };
+          return { percent: this.t('tier100'), color: 'bg-signalRed text-white' };
         }
         if (delayMinutes >= 40) {
-          return { percent: '75 % ersättning av biljett', color: 'bg-asphalt text-signalYellow' };
+          return { percent: this.t('tier75'), color: 'bg-asphalt text-signalYellow' };
         }
         if (delayMinutes >= 20) {
-          return { percent: '50 % ersättning av biljett', color: 'bg-signalYellow text-asphalt' };
+          return { percent: this.t('tier50'), color: 'bg-signalYellow text-asphalt' };
         }
-        return { percent: 'Under 20 min (Ingen resegaranti)', color: 'bg-paperDark text-neutral-600' };
+        return { percent: this.t('tierNone'), color: 'bg-paperDark text-neutral-600' };
       },
 
       logTrainAsEvidence(trainId) {
         const train = this.state.departures.find(d => d.id === trainId) || this.getHeroTrain();
         if (!train) {
-          this.showToast("Synkronisera och välj ett riktigt tåg först!", "!");
+          this.showToast(this.t('toastSaveFirst'), "!");
           return;
         }
 
         const arrivalDelay = train.arrivalDelay || 0;
         const isCanceled = train.isCanceled || train.arrivalCanceled;
+
+        const defaultDev = this.state.lang === 'sv'
+          ? 'Ingen angiven orsak vid loggningstillfället'
+          : 'No reason specified at time of logging';
 
         const entry = {
           id: 'ev-' + Date.now(),
@@ -922,13 +1298,13 @@
           actual: train.estimatedTime || train.advertisedTime,
           delayMinutes: arrivalDelay,
           isCanceled: isCanceled,
-          deviation: train.deviation || 'Ingen angiven orsak vid loggningstillfället'
+          deviation: train.deviation || defaultDev
         };
 
         this.state.evidenceLog.unshift(entry);
         localStorage.setItem('mp_evidence_log', JSON.stringify(this.state.evidenceLog));
         this.renderEvidenceList();
-        this.showToast(`Tåg ${train.trainNo} sparat som tidsstämplat bevis!`, '§');
+        this.showToast(this.t('toastEvidenceLogged', { no: train.trainNo }), '§');
       },
 
       removeEvidence(id) {
@@ -940,13 +1316,13 @@
       renderEvidenceList() {
         const container = document.getElementById('evidenceCardsContainer');
         const badge = document.getElementById('evidenceCountBadge');
-        if (badge) badge.innerText = `${this.state.evidenceLog.length} st`;
+        if (badge) badge.innerText = `${this.state.evidenceLog.length} ${this.t('evidenceCountUnit')}`;
         if (!container) return;
 
         if (this.state.evidenceLog.length === 0) {
           container.innerHTML = `
             <div class="border-2 border-dashed border-asphalt p-6 text-center font-mono text-xs text-neutral-600">
-              Inga tåg sparade ännu. Klicka på "+ SPARA BEVIS" på startsidan.
+              ${this.t('emptyEvidence')}
             </div>
           `;
           return;
@@ -957,33 +1333,36 @@
           const tier = this.calculateCompensationTier(ev.delayMinutes, ev.isCanceled);
           const card = document.createElement('div');
           card.className = "border-2 border-asphalt bg-white shadow-brutal-sm p-3 font-mono text-xs space-y-2";
+          const devStatus = ev.isCanceled ? this.t('statusCancelled') : `+${ev.delayMinutes} min`;
+          const actStatus = ev.isCanceled ? this.t('heroCancelled') : ev.actual;
+
           card.innerHTML = `
             <div class="flex items-center justify-between border-b border-neutral-300 pb-1.5">
               <div>
                 <span class="font-extrabold text-sm">${ev.operator} #${ev.trainNo}</span>
                 <span class="text-[10px] text-neutral-500 ml-1">${ev.date}</span>
               </div>
-              <button onclick="app.removeEvidence('${ev.id}')" class="text-[10px] text-signalRed hover:underline font-bold">TA BORT ✕</button>
+              <button onclick="app.removeEvidence('${ev.id}')" class="text-[10px] text-signalRed hover:underline font-bold">${this.t('deleteEvidence')}</button>
             </div>
             <div class="grid grid-cols-3 gap-2 bg-paper p-2 border border-neutral-300">
               <div>
-                <div class="text-[9px] text-neutral-500 uppercase">Ordinarie</div>
+                <div class="text-[9px] text-neutral-500 uppercase">${this.t('thScheduled')}</div>
                 <div class="font-bold">${ev.advertised}</div>
               </div>
               <div>
-                <div class="text-[9px] text-neutral-500 uppercase">Faktisk/Ny</div>
-                <div class="font-bold text-signalRed">${ev.isCanceled ? 'INSTÄLLT' : ev.actual}</div>
+                <div class="text-[9px] text-neutral-500 uppercase">${this.t('thActualNew')}</div>
+                <div class="font-bold text-signalRed">${actStatus}</div>
               </div>
               <div>
-                <div class="text-[9px] text-neutral-500 uppercase">Avvikelse</div>
-                <div class="font-extrabold">${ev.isCanceled ? 'Inställt' : '+' + ev.delayMinutes + ' min'}</div>
+                <div class="text-[9px] text-neutral-500 uppercase">${this.t('thDeviation')}</div>
+                <div class="font-extrabold">${devStatus}</div>
               </div>
             </div>
             <div class="flex items-center justify-between pt-0.5">
               <span class="px-2 py-0.5 text-[10px] font-bold ${tier.color}">${tier.percent}</span>
-              <span class="text-[10px] text-neutral-500">Loggad kl ${ev.loggedAt}</span>
+              <span class="text-[10px] text-neutral-500">${this.t('loggedAtPrefix')} ${ev.loggedAt}</span>
             </div>
-            <div class="text-[10px] text-neutral-600">Orsak: ${ev.deviation}</div>
+            <div class="text-[10px] text-neutral-600">${this.t('reasonPrefix')}: ${ev.deviation}</div>
           `;
           container.appendChild(card);
         });
@@ -991,20 +1370,34 @@
 
       copyEvidenceReport() {
         if (!this.state.evidenceLog.length) {
-          this.showToast("Spara minst ett tåg först!", "!");
+          this.showToast(this.t('toastSaveAtLeastOne'), "!");
           return;
         }
-        let report = "UNDERLAG FÖR FÖRSENINGSERSÄTTNING (TRAFIKVERKET DATA)\n====================================================\n";
+
+        const isEn = this.state.lang === 'en';
+        let report = isEn
+          ? "DELAY COMPENSATION CLAIM REPORT (TRAFIKVERKET DATA)\n====================================================\n"
+          : "UNDERLAG FÖR FÖRSENINGSERSÄTTNING (TRAFIKVERKET DATA)\n====================================================\n";
+
         this.state.evidenceLog.forEach((ev, i) => {
           const tier = this.calculateCompensationTier(ev.delayMinutes, ev.isCanceled);
-          report += `\n[${i + 1}] Datum: ${ev.date} (Sparad kl ${ev.loggedAt})\n`;
-          report += `Tåg: ${ev.operator}, Tågnummer ${ev.trainNo}\n`;
-          report += `Sträcka: ${ev.from} -> ${ev.to}\n`;
-          report += `Ordinarie avgång: ${ev.advertised} | Faktisk/Beräknad: ${ev.isCanceled ? 'INSTÄLLT' : ev.actual}\n`;
-          report += `Försening: ${ev.isCanceled ? 'Inställt avgång' : ev.delayMinutes + ' minuter'} (${tier.percent})\n`;
-          report += `Trafikverkets orsakskod: ${ev.deviation}\n`;
+          if (isEn) {
+            report += `\n[${i + 1}] Date: ${ev.date} (Saved at ${ev.loggedAt})\n`;
+            report += `Train: ${ev.operator}, Train number ${ev.trainNo}\n`;
+            report += `Route: ${ev.from} -> ${ev.to}\n`;
+            report += `Scheduled departure: ${ev.advertised} | Actual/Estimated: ${ev.isCanceled ? 'CANCELLED' : ev.actual}\n`;
+            report += `Delay: ${ev.isCanceled ? 'Cancelled departure' : ev.delayMinutes + ' minutes'} (${tier.percent})\n`;
+            report += `Trafikverket deviation code: ${ev.deviation}\n`;
+          } else {
+            report += `\n[${i + 1}] Datum: ${ev.date} (Sparad kl ${ev.loggedAt})\n`;
+            report += `Tåg: ${ev.operator}, Tågnummer ${ev.trainNo}\n`;
+            report += `Sträcka: ${ev.from} -> ${ev.to}\n`;
+            report += `Ordinarie avgång: ${ev.advertised} | Faktisk/Beräknad: ${ev.isCanceled ? 'INSTÄLLT' : ev.actual}\n`;
+            report += `Försening: ${ev.isCanceled ? 'Inställd avgång' : ev.delayMinutes + ' minuter'} (${tier.percent})\n`;
+            report += `Trafikverkets orsakskod: ${ev.deviation}\n`;
+          }
         });
-        this.copyToClipboard(report, "Färdigt ersättningskrav kopierat till urklipp!");
+        this.copyToClipboard(report, this.t('toastCopied'));
       },
 
       copyToClipboard(text, successMsg) {
@@ -1016,7 +1409,7 @@
           document.execCommand('copy');
           this.showToast(successMsg, "!");
         } catch (e) {
-          this.showToast("Kunde inte kopiera automatiskt", "!");
+          this.showToast(this.t('toastCopyFail'), "!");
         }
         document.body.removeChild(ta);
       }
@@ -1025,4 +1418,5 @@
     window.addEventListener('DOMContentLoaded', () => app.init());
   </script>
 </body>
+
 </html>
